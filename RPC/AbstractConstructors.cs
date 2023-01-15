@@ -13,7 +13,7 @@ public static class AbstractConstructors
         ReaderToObjectTransformers[type] = transformer;
     }
 
-    public static object Transform(MessageReader reader, Type type)
+    internal static object Transform(MessageReader reader, Type type)
     {
         if (!ReaderToObjectTransformers.TryGetValue(type, out Func<MessageReader, object>? transformer))
             throw new ArgumentException($"No Abstract Transformer Exists for type {type}");

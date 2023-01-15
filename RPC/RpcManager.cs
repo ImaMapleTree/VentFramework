@@ -12,7 +12,7 @@ namespace VentLib.RPC;
 
 public static class RpcManager
 {
-    public static void Register(Assembly assembly, ModRPC rpc)
+    internal static void Register(Assembly assembly, ModRPC rpc)
     {
         if (VentFramework.BuiltinRPCs.Contains(rpc.CallId) && Assembly.GetExecutingAssembly() != assembly)
             throw new ArgumentException($"RPC {rpc.CallId} shares an ID with a Builtin-VentFramework RPC. Please choose a different ID. (Builtin-IDs: {VentFramework.BuiltinRPCs.StrJoin()})");

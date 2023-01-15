@@ -11,7 +11,7 @@ using VentLib.Interfaces;
 
 namespace VentLib.RPC;
 
-public static class ParameterHelper
+internal static class ParameterHelper
 {
     public static Type[] AllowedTypes =
     {

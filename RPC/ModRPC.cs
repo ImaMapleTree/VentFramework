@@ -23,7 +23,7 @@ public class ModRPC
     private readonly MethodBase trampoline;
     private readonly Func<object?> instanceSupplier;
 
-    public ModRPC(ModRPCAttribute attribute, MethodInfo targetMethod)
+    internal ModRPC(ModRPCAttribute attribute, MethodInfo targetMethod)
     {
         TargetMethod = targetMethod;
         CallId = attribute.CallId;

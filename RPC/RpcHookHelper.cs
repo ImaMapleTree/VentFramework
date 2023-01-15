@@ -16,7 +16,7 @@ using VentLib.Utilities;
 
 namespace VentLib.RPC;
 
-public class RpcHookHelper
+internal class RpcHookHelper
 {
     internal static long globalSendCount;
     private static List<DetouredSender> _senders = new();
@@ -24,7 +24,7 @@ public class RpcHookHelper
     private static readonly OpCode[] _ldc = { OpCodes.Ldc_I4_0, OpCodes.Ldc_I4_1, OpCodes.Ldc_I4_2, OpCodes.Ldc_I4_3, OpCodes.Ldc_I4_4, OpCodes.Ldc_I4_5, OpCodes.Ldc_I4_6, OpCodes.Ldc_I4_7, OpCodes.Ldc_I4_8 };
     private static readonly OpCode[] _ldarg = { OpCodes.Ldarg_0, OpCodes.Ldarg_1, OpCodes.Ldarg_2, OpCodes.Ldarg_3 };
 
-    public static Hook Generate(ModRPC modRPC)
+    internal static Hook Generate(ModRPC modRPC)
     {
         MethodInfo executingMethod = modRPC.TargetMethod;
         Type[] parameters = executingMethod.GetParameters().Select(p => p.ParameterType).ToArray();
@@ -79,14 +79,14 @@ public class RpcHookHelper
 
 public class DetouredSender
 {
-    private int uuid = UnityEngine.Random.RandomRangeInt(0, 999999);
+    private readonly int uuid = UnityEngine.Random.RandomRangeInt(0, 999999);
     private int localSendCount;
-    private ModRPC modRPC;
-    private uint callId;
-    private RpcActors senders;
-    private RpcActors receivers;
+    private readonly ModRPC modRPC;
+    private readonly uint callId;
+    private readonly RpcActors senders;
+    private readonly RpcActors receivers;
 
-    public DetouredSender(ModRPC modRPC)
+    internal DetouredSender(ModRPC modRPC)
     {
         this.modRPC = modRPC;
         callId = this.modRPC.CallId;
@@ -95,14 +95,14 @@ public class DetouredSender
         modRPC.Sender = this;
     }
 
-    public void IntermediateSend(params object?[] args)
+    internal void IntermediateSend(params object?[] args)
     {
         if (modRPC.Invocation is MethodInvocation.ExecuteBefore) modRPC.InvokeTrampoline(args!);
         Send(null, args);
         if (modRPC.Invocation is MethodInvocation.ExecuteAfter) modRPC.InvokeTrampoline(args!);
     }
 
-    public void Send(int[]? targets, object?[] args)
+    internal void Send(int[]? targets, object?[] args)
     {
         if (AmongUsClient.Instance == null) return;
         if (!CanSend(out int[]? lastSender) || !VentFramework.CallingAssemblyFlag().HasFlag(VentControlFlag.AllowedSender)) return;
