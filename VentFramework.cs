@@ -18,7 +18,9 @@ namespace VentLib;
 
 public static class VentFramework
 {
-    public static uint[] BuiltinRPCs = { 1017 };
+    public static readonly uint[] BuiltinRPCs = Enum.GetValues<VentRPC>().Select(rpc => (uint)rpc).ToArray();
+
+    internal static Assembly rootAssemby = null!;
     internal static Harmony Harmony = null!;
     internal static readonly Dictionary<uint, List<ModRPC>> RpcBindings = new();
     internal static readonly Dictionary<Assembly, VentControlFlag> RegisteredAssemblies = new();
@@ -95,11 +97,22 @@ public static class VentFramework
 
     public static void Initialize(bool requirePatch = false)
     {
-
+        rootAssemby = Assembly.GetCallingAssembly();
         Localizer.Initialize();
         IL2CPPChainloader.Instance.PluginLoad += (_, assembly, _) => Register(assembly, true);
         Harmony = new Harmony("me.tealeaf.VentFramework");
         if (requirePatch) Harmony.PatchAll(Assembly.GetExecutingAssembly());
+    }
+
+    public static class Settings
+    {
+        internal static bool SendVersionCheckOnJoin = true;
+
+        public static void CheckVersionOnPlayerJoin(bool check)
+        {
+            SendVersionCheckOnJoin = check;
+        }
+
     }
 }
 

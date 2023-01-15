@@ -10,14 +10,14 @@ public static class VentRPCs
 {
     // This is the sender version of this Rpc. In order to fully utilize it you must make your own handler.
     [ModRPC((uint)VentRPC.VersionCheck, RpcActors.Everyone, RpcActors.NonHosts)]
-    public static void SendVersionPing(string fullAssemblyName, string? version = null, bool isCorrect = true)
+    public static void SendVersionCheck(string fullAssemblyName, string? version = null, bool isCorrect = true)
     {
         AssemblyName name = new AssemblyName(fullAssemblyName);
         Assembly? assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(assembly => assembly.GetName().Name == name.Name);
         version = assembly?.GetName()?.Version?.ToString();
         bool correct = version == name.Version?.ToString();
         // ReSharper disable once TailRecursiveCall
-        SendVersionPing(fullAssemblyName, version, correct);
+        SendVersionCheck(fullAssemblyName, version, correct);
     }
     
     [ModRPC((uint)VentRPC.SetControlFlag, RpcActors.Host, RpcActors.NonHosts)]

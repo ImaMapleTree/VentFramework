@@ -5,7 +5,7 @@ using VentLib.Logging;
 namespace VentLib.Patches;
 
 [HarmonyPatch(typeof(AmongUsClient), nameof(AmongUsClient.OnGameJoined))]
-internal class GameJoinPatch
+internal static class GameJoinPatch
 {
     private static void Prefix(AmongUsClient __instance)
     {
