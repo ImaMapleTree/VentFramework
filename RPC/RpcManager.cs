@@ -8,7 +8,7 @@ using VentLib.Extensions;
 using VentLib.Logging;
 using VentLib.Utilities;
 
-namespace VentLib;
+namespace VentLib.RPC;
 
 public static class RpcManager
 {

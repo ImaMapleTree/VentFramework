@@ -12,10 +12,9 @@ using UnityEngine;
 using VentLib.Extensions;
 using VentLib.Interfaces;
 using VentLib.Logging;
-using VentLib.RPC;
 using VentLib.Utilities;
 
-namespace VentLib;
+namespace VentLib.RPC;
 
 public class RpcHookHelper
 {
@@ -90,9 +89,9 @@ public class DetouredSender
     public DetouredSender(ModRPC modRPC)
     {
         this.modRPC = modRPC;
-        this.callId = this.modRPC.CallId;
-        this.senders = modRPC.Senders;
-        this.receivers = this.modRPC.Receivers;
+        callId = this.modRPC.CallId;
+        senders = modRPC.Senders;
+        receivers = this.modRPC.Receivers;
         modRPC.Sender = this;
     }
 

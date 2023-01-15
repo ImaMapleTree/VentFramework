@@ -7,7 +7,7 @@ using VentLib.Extensions;
 using VentLib.Interfaces;
 using VentLib.Logging;
 
-namespace VentLib;
+namespace VentLib.RPC;
 
 public class ModRPC
 {

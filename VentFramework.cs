@@ -8,6 +8,7 @@ using HarmonyLib;
 using VentLib.Interfaces;
 using VentLib.Localization;
 using VentLib.Logging;
+using VentLib.RPC;
 
 namespace VentLib;
 

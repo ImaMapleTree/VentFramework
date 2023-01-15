@@ -1,6 +1,7 @@
 using HarmonyLib;
 using Hazel;
 using InnerNet;
+using VentLib.RPC;
 
 namespace VentLib.Patches;
 

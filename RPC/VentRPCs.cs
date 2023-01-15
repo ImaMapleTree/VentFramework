@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using VentLib.Logging;
 
-namespace VentLib;
+namespace VentLib.RPC;
 
 public static class VentRPCs
 {

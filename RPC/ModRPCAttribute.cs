@@ -1,9 +1,7 @@
 #nullable enable
 using System;
-using System.Reflection;
-using MonoMod.RuntimeDetour;
 
-namespace VentLib;
+namespace VentLib.RPC;
 
 
 [AttributeUsage(AttributeTargets.Method)]

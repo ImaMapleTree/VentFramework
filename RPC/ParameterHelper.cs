@@ -8,9 +8,8 @@ using Hazel;
 using InnerNet;
 using UnityEngine;
 using VentLib.Interfaces;
-using VentLib.RPC;
 
-namespace VentLib;
+namespace VentLib.RPC;
 
 public static class ParameterHelper
 {
