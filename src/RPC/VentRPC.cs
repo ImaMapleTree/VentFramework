@@ -6,10 +6,10 @@ using VentLib.Logging;
 
 namespace VentLib.RPC;
 
-public static class VentRPCs
+public static class VentRPC
 {
     // This is the sender version of this Rpc. In order to fully utilize it you must make your own handler.
-    [ModRPC((uint)VentRPC.VersionCheck, RpcActors.Everyone, RpcActors.NonHosts)]
+    [VentRPC(VentCall.VersionCheck, RpcActors.Everyone, RpcActors.NonHosts)]
     public static void SendVersionCheck(string fullAssemblyName, string? version = null, bool isCorrect = true)
     {
         AssemblyName name = new AssemblyName(fullAssemblyName);
@@ -20,7 +20,7 @@ public static class VentRPCs
         SendVersionCheck(fullAssemblyName, version, correct);
     }
     
-    [ModRPC((uint)VentRPC.SetControlFlag, RpcActors.Host, RpcActors.NonHosts)]
+    [VentRPC(VentCall.SetControlFlag, RpcActors.Host, RpcActors.NonHosts)]
     public static void SetControlFlag(string assemblyName, int controlFlag)
     {
         VentLogger.Trace($"SetControlFlag(assemblyName={assemblyName}, controlFlag={controlFlag})", "VentFramework");
@@ -31,7 +31,7 @@ public static class VentRPCs
     }
 }
 
-public enum VentRPC: uint
+public enum VentCall: uint
 {
     VersionCheck = 1017,
     SetControlFlag = 1018

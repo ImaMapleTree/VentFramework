@@ -18,7 +18,7 @@ namespace VentLib;
 
 public static class VentFramework
 {
-    public static readonly uint[] BuiltinRPCs = Enum.GetValues<VentRPC>().Select(rpc => (uint)rpc).ToArray();
+    public static readonly uint[] BuiltinRPCs = Enum.GetValues<VentCall>().Select(rpc => (uint)rpc).ToArray();
 
     internal static Assembly rootAssemby = null!;
     internal static Harmony Harmony = null!;
@@ -68,7 +68,7 @@ public static class VentFramework
         return RPCs.FirstOrDefault(v => targetMethod == null || v.TargetMethod.Equals(targetMethod));
     }
 
-    public static PlayerControl? GetLastSender(uint rpcId) => VentFramework.LastSenders.GetValueOrDefault(rpcId);
+    public static PlayerControl? GetLastSender(uint rpcId) => LastSenders.GetValueOrDefault(rpcId);
 
     public static void Register(Assembly assembly, bool rootAssembly = false)
     {
@@ -91,7 +91,7 @@ public static class VentFramework
             if (!method.IsStatic && declaringType != null && !declaringType.IsAssignableTo(typeof(IRpcInstance)))
                 throw new ArgumentException($"Unable to Register Method {method.Name}. Reason: Declaring Class of non-static methods must implement IRpcInstance");
 
-            RpcManager.Register(assembly, new ModRPC(attribute, method));
+            RpcManager.Register(new ModRPC(attribute, method));
         }
     }
 

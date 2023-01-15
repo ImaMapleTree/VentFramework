@@ -18,6 +18,7 @@ public class ModRPC
     internal readonly Type[] Parameters;
     internal readonly Assembly? Assembly;
     internal readonly MethodInfo TargetMethod;
+    internal readonly ModRPCAttribute Attribute;
     internal DetouredSender Sender = null!;
     private readonly Hook hook;
     private readonly MethodBase trampoline;
@@ -25,6 +26,7 @@ public class ModRPC
 
     internal ModRPC(ModRPCAttribute attribute, MethodInfo targetMethod)
     {
+        Attribute = attribute;
         TargetMethod = targetMethod;
         CallId = attribute.CallId;
         Senders = attribute.Senders;
