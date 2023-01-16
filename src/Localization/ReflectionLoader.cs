@@ -15,6 +15,7 @@ public class ReflectionLoader
         LocalizedAttribute? parentAttribute = cls.GetCustomAttribute<LocalizedAttribute>();
         if (parentAttribute != null)
         {
+            if (parentAttribute.Key != null) parentAttribute.Group ??= parentAttribute.Key;
             parentAttribute.Source = cls;
             Attributes.Add(parentAttribute, new ReflectionObject(cls, ReflectionType.Class));
             if (parent != null)
