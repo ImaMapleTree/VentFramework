@@ -92,7 +92,7 @@ public static class Localizer
         foreach (LocalizedAttribute attribute in sortedAttributes)
         {
             ReflectionObject reflectionObject = Attributes[attribute];
-            if (attribute.Key == null) continue;
+            if (attribute.Source?.ReflectionType is ReflectionType.Class) continue;
             string value = GetValueFromPath(language, attribute.GetPath());
             reflectionObject.SetValue(value);
         }
@@ -127,10 +127,5 @@ public static class Localizer
         if (created) language.Dump();
 
         return (string)dictionary[finalPath];
-    }
-
-    private static void LanguageChangeCallback()
-    {
-
     }
 }

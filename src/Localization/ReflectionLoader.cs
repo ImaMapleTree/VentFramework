@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using MonoMod.RuntimeDetour;
+using VentLib.Extensions;
+using VentLib.Logging;
 using static VentLib.Localization.LocalizedAttribute;
 
 namespace VentLib.Localization;
@@ -15,17 +17,21 @@ public class ReflectionLoader
         LocalizedAttribute? parentAttribute = cls.GetCustomAttribute<LocalizedAttribute>();
         if (parentAttribute != null)
         {
-            if (parentAttribute.Key != null) parentAttribute.Group ??= parentAttribute.Key;
-            parentAttribute.Source = cls;
-            Attributes.Add(parentAttribute, new ReflectionObject(cls, ReflectionType.Class));
+            if (parentAttribute.Key != null)
+            {
+                parentAttribute.Group ??= parentAttribute.Key;
+                parentAttribute.Key = null;
+            }
+
             if (parent != null)
             {
-                parentAttribute.Subgroup = parent.Group;
+                parentAttribute.Subgroup = parentAttribute.GetPath();
                 parentAttribute.Group = parent.GetPath();
             }
+            Attributes.Add(parentAttribute, parentAttribute.Source = new ReflectionObject(cls, ReflectionType.Class));
         }
 
-        List<FieldInfo> staticFields = cls.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).ToList();
+        List<FieldInfo> staticFields = cls.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy).ToList();
         FieldInfo? overrideField = staticFields.FirstOrDefault(f => f.GetCustomAttribute<SubgroupProvider>() != null);
         if (overrideField != null && parentAttribute != null) parentAttribute.Subgroup = (string?)overrideField.GetValue(null);
 
@@ -39,7 +45,7 @@ public class ReflectionLoader
         staticFields.Do(f => RegisterField(f, ReflectionType.StaticField, parentAttribute));
         cls.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Do(f => RegisterField(f, ReflectionType.InstanceField, parentAttribute));
         cls.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Do(f => RegisterProperty(f, parentAttribute, cls.Assembly));
-        cls.GetNestedTypes().Do(clz => RegisterClass(clz, parentAttribute));
+        cls.GetNestedTypes(BindingFlags.Default | BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic).Do(clz => RegisterClass(clz, parentAttribute));
     }
 
     public static void RegisterField(FieldInfo field, ReflectionType reflectionType, LocalizedAttribute? parent)
@@ -48,9 +54,9 @@ public class ReflectionLoader
         if (attribute == null) return;
         if (parent != null)
             attribute.GroupSupplier = parent.GetPath;
-
-        attribute.Source = field;
-        Attributes.Add(attribute, new ReflectionObject(field, reflectionType));
+        
+        if (parent != null && parent.GetPath().Contains("PetOptions")) VentLogger.Fatal("AHHHHH " + attribute.GetPath());
+        Attributes.Add(attribute, attribute.Source = new ReflectionObject(field, reflectionType));
     }
 
     public static void RegisterProperty(PropertyInfo property, LocalizedAttribute? parent, Assembly assembly)
@@ -62,9 +68,8 @@ public class ReflectionLoader
         Hook _ = new(property.GetGetMethod(true), new Func<Func<object, string>, object, string>((getter, self) => PropertyModifyHook(getter, self, attribute, assemblyName)));
         if (parent != null)
             attribute.GroupSupplier = parent.GetPath;
-
-        attribute.Source = property;
-        Attributes.Add(attribute, new ReflectionObject(property, ReflectionType.Property));
+        
+        Attributes.Add(attribute, attribute.Source = new ReflectionObject(property, ReflectionType.Property));
     }
 
     public static string PropertyInfoHook(Func<object, string> getter, object self, LocalizedAttribute? parent)

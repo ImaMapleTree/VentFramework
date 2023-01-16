@@ -11,9 +11,8 @@ public class LocalizedAttribute: Attribute, IComparable<LocalizedAttribute>
     public string? Key;
     public string? Group;
     public string? Subgroup;
-    public bool Lazy = true;
 
-    internal object? Source;
+    internal ReflectionObject? Source;
     internal Func<string?>? GroupSupplier;
 
     public LocalizedAttribute() { }
@@ -26,12 +25,17 @@ public class LocalizedAttribute: Attribute, IComparable<LocalizedAttribute>
 
     internal string GetPath()
     {
-        string? group = GroupSupplier != null ? GroupSupplier() ?? Group : Group;
+        string? group = GroupSupplier != null 
+            ? GroupSupplier() ?? Group 
+            : Group;
+        
         string subgroup = Subgroup != null ? "." + Subgroup : "";
+        string key = Key != null ? "." + Key : "";
 
-        if (Key == null && group == null) throw new FormatException($"Invalid Attribute for: {Source}. Localization Attribute must contain either a key or value");
+        return $"{group}{subgroup}{key}".TrimStart('.');
+        /*if (Key == null && group == null) throw new FormatException($"Invalid Attribute for: {Source?.Object}. Localization Attribute must contain either a key or value");
         if (Key == null) return group + subgroup;
-        return (group == null) ? Key : $"{group}{subgroup}.{Key}";
+        return group == null ? Key : $"{group}{subgroup}.{Key}";*/
     }
 
     public int CompareTo(LocalizedAttribute? other)
@@ -43,11 +47,4 @@ public class LocalizedAttribute: Attribute, IComparable<LocalizedAttribute>
         var keyComparison = string.Compare(Key, other.Key, StringComparison.Ordinal);
         return keyComparison;
     }
-}
-
-public enum KeyProvider
-{
-    Attribute,
-    FieldName,
-    Dynamically
 }
