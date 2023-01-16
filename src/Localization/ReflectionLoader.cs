@@ -10,22 +10,23 @@ namespace VentLib.Localization;
 
 public class ReflectionLoader
 {
-    private static Dictionary<string, string> lookupCache = new ();
-
-
-    public static void RegisterClass(Type cls, string? parentGroup = null, string? group = null)
+    public static void RegisterClass(Type cls, LocalizedAttribute? parent = null)
     {
         LocalizedAttribute? parentAttribute = cls.GetCustomAttribute<LocalizedAttribute>();
         if (parentAttribute != null)
         {
             parentAttribute.Source = cls;
             Attributes.Add(parentAttribute, new ReflectionObject(cls, ReflectionType.Class));
-            group ??= parentAttribute.Group;
+            if (parent != null)
+            {
+                parentAttribute.Subgroup = parent.Group;
+                parentAttribute.Group = parent.GetPath();
+            }
         }
 
         List<FieldInfo> staticFields = cls.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).ToList();
         FieldInfo? overrideField = staticFields.FirstOrDefault(f => f.GetCustomAttribute<SubgroupProvider>() != null);
-        if (overrideField != null) group = (string?)overrideField.GetValue(null);
+        if (overrideField != null && parentAttribute != null) parentAttribute.Subgroup = (string?)overrideField.GetValue(null);
 
         List<PropertyInfo> properties = cls.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).ToList();
         PropertyInfo? overrideProperty = properties.FirstOrDefault(f => f.GetCustomAttribute<SubgroupProvider>() != null);
@@ -37,7 +38,7 @@ public class ReflectionLoader
         staticFields.Do(f => RegisterField(f, ReflectionType.StaticField, parentAttribute));
         cls.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Do(f => RegisterField(f, ReflectionType.InstanceField, parentAttribute));
         cls.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Do(f => RegisterProperty(f, parentAttribute, cls.Assembly));
-        cls.GetNestedTypes().Do(clz => RegisterClass(clz, group));
+        cls.GetNestedTypes().Do(clz => RegisterClass(clz, parentAttribute));
     }
 
     public static void RegisterField(FieldInfo field, ReflectionType reflectionType, LocalizedAttribute? parent)
