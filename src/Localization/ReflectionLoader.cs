@@ -55,7 +55,6 @@ public class ReflectionLoader
         if (parent != null)
             attribute.GroupSupplier = parent.GetPath;
         
-        if (parent != null && parent.GetPath().Contains("PetOptions")) VentLogger.Fatal("AHHHHH " + attribute.GetPath());
         Attributes.Add(attribute, attribute.Source = new ReflectionObject(field, reflectionType));
     }
 
