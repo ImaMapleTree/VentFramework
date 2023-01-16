@@ -101,6 +101,7 @@ public static class Vents
         rootAssemby = Assembly.GetCallingAssembly();
         Localizer.Initialize();
         IL2CPPChainloader.Instance.PluginLoad += (_, assembly, _) => Register(assembly, assembly == rootAssemby);
+        Register(Assembly.GetExecutingAssembly());
         if (patch) Harmony.PatchAll(Assembly.GetExecutingAssembly());
     }
 
