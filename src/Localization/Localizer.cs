@@ -50,7 +50,7 @@ public static class Localizer
 
         if (_translations.TryGetValue(assemblyName, out Language? language))
             return GetValueFromPath(language, keyPath);
-        VentLogger.Fatal($"No Translations Exist for {keyPath}! Attempting to use Root Translations");
+        VentLogger.Fatal($"No Translations Exist for \"{assemblyName}\" Attempting to use Root ({_root}) Translations");
         language = _translations["root"];
 
         translation = GetValueFromPath(language, keyPath);
@@ -65,10 +65,10 @@ public static class Localizer
         _translations = _loader.Get(CurrentLanguage);
     }
 
-    public static void Load(Assembly assembly, bool rootAssembly = false)
+    public static void Load(Assembly assembly)
     {
-        string assemblyName = rootAssembly ? "root" : assembly.GetName().Name!;
-        if (rootAssembly)
+        string assemblyName = assembly == Vents.rootAssemby ? "root" : assembly.GetName().Name!;
+        if (assembly == Vents.rootAssemby)
             _root =  assembly.GetName().Name!;
         VentLogger.Info($"Loading Translations for {assemblyName}");
         if (!_loader.SupportedLanguages.ContainsKey(assemblyName) && assemblyName != "root")

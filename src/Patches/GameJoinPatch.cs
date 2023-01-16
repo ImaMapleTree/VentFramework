@@ -9,10 +9,10 @@ internal static class GameJoinPatch
 {
     private static void Prefix(AmongUsClient __instance)
     {
-        foreach (Assembly assembly in VentFramework.RegisteredAssemblies.Keys)
+        foreach (Assembly assembly in Vents.RegisteredAssemblies.Keys)
         {
-            VentFramework.RegisteredAssemblies[assembly] = VentControlFlag.AllowedReceiver | VentControlFlag.AllowedSender;
-            VentFramework.BlockedReceivers[assembly] = null;
+            Vents.RegisteredAssemblies[assembly] = VentControlFlag.AllowedReceiver | VentControlFlag.AllowedSender;
+            Vents.BlockedReceivers[assembly] = null;
         }
         VentLogger.Info("Refreshed Assembly Flags", "VentFramework");
     }

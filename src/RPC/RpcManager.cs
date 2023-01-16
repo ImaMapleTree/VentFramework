@@ -14,13 +14,13 @@ public static class RpcManager
 {
     internal static void Register(ModRPC rpc)
     {
-        if (VentFramework.BuiltinRPCs.Contains(rpc.CallId) && rpc.Attribute is not VentRPCAttribute)
-            throw new ArgumentException($"RPC {rpc.CallId} shares an ID with a Builtin-VentFramework RPC. Please choose a different ID. (Builtin-IDs: {VentFramework.BuiltinRPCs.StrJoin()})");
+        if (Vents.BuiltinRPCs.Contains(rpc.CallId) && rpc.Attribute is not VentRPCAttribute)
+            throw new ArgumentException($"RPC {rpc.CallId} shares an ID with a Builtin-VentFramework RPC. Please choose a different ID. (Builtin-IDs: {Vents.BuiltinRPCs.StrJoin()})");
 
-        if (!VentFramework.RpcBindings.ContainsKey(rpc.CallId))
-            VentFramework.RpcBindings.Add(rpc.CallId, new List<ModRPC>());
+        if (!Vents.RpcBindings.ContainsKey(rpc.CallId))
+            Vents.RpcBindings.Add(rpc.CallId, new List<ModRPC>());
 
-        VentFramework.RpcBindings[rpc.CallId].Add(rpc);
+        Vents.RpcBindings[rpc.CallId].Add(rpc);
     }
 
     internal static bool HandleRpc(byte callId, MessageReader reader)
@@ -34,25 +34,25 @@ public static class RpcManager
         if (AmongUsClient.Instance.allObjectsFast.TryGet(senderId, out InnerNetObject? netObject))
         {
             player = netObject!.TryCast<PlayerControl>();
-            if (player != null) VentFramework.LastSenders[customId] = player;
+            if (player != null) Vents.LastSenders[customId] = player;
         }
 
         if (player != null && player.PlayerId == PlayerControl.LocalPlayer.PlayerId) return true;
         string sender = "Client: " + (player == null ? "?" : player.GetClientId());
         string receiverType = AmongUsClient.Instance.AmHost ? "Host" : "NonHost";
         VentLogger.Info($"Custom RPC Received ({customId}) from \"{sender}\" as {receiverType}", "VentFramework");
-        if (!VentFramework.RpcBindings.TryGetValue(customId, out List<ModRPC>? RPCs))
+        if (!Vents.RpcBindings.TryGetValue(customId, out List<ModRPC>? rpcs))
         {
             VentLogger.Warn($"Received Unknown RPC: {customId}", "VentFramework");
             reader.Recycle();
             return false;
         }
 
-        foreach (ModRPC modRPC in RPCs)
+        foreach (ModRPC modRPC in rpcs)
         {
             // Cases in which the client is not the correct listener
             if (!CanReceive(modRPC.Receivers)) continue;
-            if (!VentFramework.CallingAssemblyFlag(modRPC.Assembly).HasFlag(VentControlFlag.AllowedReceiver)) continue;
+            if (!Vents.CallingAssemblyFlag(modRPC.Assembly).HasFlag(VentControlFlag.AllowedReceiver)) continue;
             modRPC.InvokeTrampoline(ParameterHelper.Cast(modRPC.Parameters, reader));
         }
 

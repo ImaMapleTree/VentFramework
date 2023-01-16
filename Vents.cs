@@ -16,12 +16,12 @@ namespace VentLib;
 //if the client has an unsupported addon it's rpcs get disabled completely CHECK!
 //if the client is missing an addon then the host's rpcs from that addon to that client get disabled
 
-public static class VentFramework
+public static class Vents
 {
     public static readonly uint[] BuiltinRPCs = Enum.GetValues<VentCall>().Select(rpc => (uint)rpc).ToArray();
 
     internal static Assembly rootAssemby = null!;
-    internal static Harmony Harmony = null!;
+    internal static Harmony Harmony = new("me.tealeaf.VentLib");
     internal static readonly Dictionary<uint, List<ModRPC>> RpcBindings = new();
     internal static readonly Dictionary<Assembly, VentControlFlag> RegisteredAssemblies = new();
     internal static readonly Dictionary<Assembly, string> AssemblyNames = new();
@@ -70,13 +70,14 @@ public static class VentFramework
 
     public static PlayerControl? GetLastSender(uint rpcId) => LastSenders.GetValueOrDefault(rpcId);
 
-    public static void Register(Assembly assembly, bool rootAssembly = false)
+    public static void Register(Assembly assembly, bool localize = true)
     {
         if (RegisteredAssemblies.ContainsKey(assembly)) return;
         RegisteredAssemblies.Add(assembly, VentControlFlag.AllowedReceiver | VentControlFlag.AllowedSender);
         AssemblyNames.Add(assembly, assembly.GetName().Name!);
 
-        Localizer.Load(assembly, rootAssembly);
+        if (localize)
+            Localizer.Load(assembly);
 
         var methods = assembly.GetTypes()
             .SelectMany(t => t.GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
@@ -95,13 +96,12 @@ public static class VentFramework
         }
     }
 
-    public static void Initialize(bool requirePatch = false)
+    public static void Initialize(bool patch = true)
     {
         rootAssemby = Assembly.GetCallingAssembly();
         Localizer.Initialize();
-        IL2CPPChainloader.Instance.PluginLoad += (_, assembly, _) => Register(assembly, true);
-        Harmony = new Harmony("me.tealeaf.VentFramework");
-        if (requirePatch) Harmony.PatchAll(Assembly.GetExecutingAssembly());
+        IL2CPPChainloader.Instance.PluginLoad += (_, assembly, _) => Register(assembly, assembly == rootAssemby);
+        if (patch) Harmony.PatchAll(Assembly.GetExecutingAssembly());
     }
 
     public static class Settings
@@ -112,7 +112,6 @@ public static class VentFramework
         {
             SendVersionCheckOnJoin = check;
         }
-
     }
 }
 

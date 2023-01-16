@@ -26,7 +26,7 @@ public static class VentLogger
     {
         if (level.Level < Configuration.AllowedLevel.Level) return;
         string levelPrefix = level.Name.PadRight(LogLevel.LongestName);
-        string sourcePrefix = !Configuration.ShowSourceName ? "" : ":" + VentFramework.AssemblyNames.GetValueOrDefault(Assembly.GetCallingAssembly(), "Unknown");
+        string sourcePrefix = !Configuration.ShowSourceName ? "" : ":" + Vents.AssemblyNames.GetValueOrDefault(Assembly.GetCallingAssembly(), "Unknown");
 
         ConsoleManager.SetConsoleColor(level.Color);
         string tagPrefix = tag == null ? "" : $"[{tag}]";

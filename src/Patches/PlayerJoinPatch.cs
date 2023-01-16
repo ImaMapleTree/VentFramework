@@ -1,6 +1,7 @@
 using HarmonyLib;
 using InnerNet;
 using VentLib.RPC;
+using VentLib.Utilities;
 
 namespace VentLib.Patches;
 
@@ -9,8 +10,8 @@ internal static class PlayerJoinPatch
 {
     private static void Postfix(AmongUsClient __instance, [HarmonyArgument(0)] ClientData client)
     {
-        if (!VentFramework.Settings.SendVersionCheckOnJoin) return;
-        ModRPC rpc = VentFramework.FindRPC((uint)VentCall.VersionCheck, AccessTools.Method(typeof(VentRPC), nameof(VentRPC.SendVersionCheck)))!;
-        rpc.Send(new[] { client.Id }, VentFramework.rootAssemby.GetName().FullName);
+        if (!Vents.Settings.SendVersionCheckOnJoin) return;
+        ModRPC rpc = Vents.FindRPC((uint)VentCall.VersionCheck, AccessTools.Method(typeof(VentRPC), nameof(VentRPC.SendVersionCheck)))!;
+        Async.Schedule(() => rpc.Send(new[] { client.Id }, Vents.rootAssemby.GetName().FullName), 0.5f);
     }
 }

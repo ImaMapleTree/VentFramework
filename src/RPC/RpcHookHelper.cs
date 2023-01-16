@@ -105,7 +105,8 @@ public class DetouredSender
     internal void Send(int[]? targets, object?[] args)
     {
         if (AmongUsClient.Instance == null) return;
-        if (!CanSend(out int[]? lastSender) || !VentFramework.CallingAssemblyFlag().HasFlag(VentControlFlag.AllowedSender)) return;
+        VentLogger.Fatal(targets?.StrJoin());
+        if (!CanSend(out int[]? lastSender) || !Vents.CallingAssemblyFlag().HasFlag(VentControlFlag.AllowedSender)) return;
         lastSender ??= targets;
         RealSend(lastSender, args);
     }
@@ -117,7 +118,7 @@ public class DetouredSender
         v2.Write((byte)receivers);
         v2.WritePacked(PlayerControl.LocalPlayer.NetId);
         args.Do(a => WriteArg(v2, a!));
-        int[]? blockedClients = VentFramework.CallingAssemblyBlacklist();
+        int[]? blockedClients = Vents.CallingAssemblyBlacklist();
 
         string senderString = AmongUsClient.Instance.AmHost ? "Host" : "NonHost";
         int clientId = PlayerControl.LocalPlayer.GetClientId();
@@ -136,7 +137,7 @@ public class DetouredSender
     private bool CanSend(out int[]? targets)
     {
         targets = null;
-        if (receivers is RpcActors.LastSender) targets = new[] { VentFramework.GetLastSender(callId)?.GetClientId() ?? 999 };
+        if (receivers is RpcActors.LastSender) targets = new[] { Vents.GetLastSender(callId)?.GetClientId() ?? 999 };
 
         return senders switch
         {

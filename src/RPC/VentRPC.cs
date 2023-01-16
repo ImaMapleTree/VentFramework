@@ -26,7 +26,7 @@ public static class VentRPC
         VentLogger.Trace($"SetControlFlag(assemblyName={assemblyName}, controlFlag={controlFlag})", "VentFramework");
         Assembly? assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(assembly => assembly.GetName().FullName == assemblyName);
         if (assembly == null) return;
-        VentFramework.SetControlFlag(assembly, (VentControlFlag)controlFlag);
+        Vents.SetControlFlag(assembly, (VentControlFlag)controlFlag);
         VentLogger.Trace($"Control Flag Set For: {assembly.GetName().Name} | Flag: {(VentControlFlag)controlFlag})");
     }
 }

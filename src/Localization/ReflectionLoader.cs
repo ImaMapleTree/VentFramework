@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using MonoMod.RuntimeDetour;
-using VentLib.Extensions;
 using VentLib.Logging;
 using static VentLib.Localization.LocalizedAttribute;
 
@@ -64,7 +63,7 @@ public class ReflectionLoader
         if (attribute == null) return;
 
         string assemblyName = Assembly.GetCallingAssembly().GetName().Name!;
-        Hook _ = new(property.GetGetMethod(true), new Func<Func<object, string>, object, string>((getter, self) => PropertyModifyHook(getter, self, attribute, assemblyName)));
+        Hook _ = new(property.GetGetMethod(true), new Func<Func<object, string>, object, string>((getter, self) => PropertyModifyHook(getter, self, attribute, assemblyName, attribute.Key == null)));
         if (parent != null)
             attribute.GroupSupplier = parent.GetPath;
         
@@ -79,10 +78,11 @@ public class ReflectionLoader
         return value;
     }
 
-    public static string PropertyModifyHook(Func<object, string> getter, object self, LocalizedAttribute target, string assemblyName)
+    public static string PropertyModifyHook(Func<object, string> getter, object self, LocalizedAttribute target, string assemblyName, bool setKey)
     {
         // DO NOT REMOVE BELOW. THIS IS REQUIRED TO POSSIBLY INVOKE ANY REQS
-        getter(self);
+        string value = getter(self);
+        if (setKey) target.Key = value;
         return Localizer.Get(target.GetPath(), assemblyName);
     }
 }
