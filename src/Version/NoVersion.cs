@@ -2,7 +2,7 @@ using Hazel;
 
 namespace VentLib.Version;
 
-internal sealed class NoVersion: Version
+public sealed class NoVersion: Version
 {
     public override Version Read(MessageReader reader)
     {
