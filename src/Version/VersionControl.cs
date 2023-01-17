@@ -9,7 +9,7 @@ public class VersionControl
     public static VersionControl Instance = null!;
     public Version? Version;
     internal Func<Version, HandshakeResult>? HandshakeFilter;
-    internal List<(ReceiveExecutionFlag, Action<Version>)> VersionHandles = new();
+    internal List<(ReceiveExecutionFlag, Action<Version, PlayerControl>)> VersionHandles = new();
     internal bool Handshake = true;
     internal float ResponseTimer = 1f;
 
@@ -18,7 +18,7 @@ public class VersionControl
         Instance = this;
     }
 
-    public void AddVersionReceiver(Action<Version> receiver, ReceiveExecutionFlag executionFlag = ReceiveExecutionFlag.Always)
+    public void AddVersionReceiver(Action<Version, PlayerControl> receiver, ReceiveExecutionFlag executionFlag = ReceiveExecutionFlag.Always)
     {
         VersionHandles.Add((executionFlag, receiver));
     }

@@ -29,7 +29,7 @@ public class VersionCheck
         HandshakeResult action = vc.HandshakeFilter!.Invoke(version);
         vc.VersionHandles
             .Where(h => h.Item1.HasFlag(action is HandshakeResult.PassDoNothing ? ReceiveExecutionFlag.OnSuccessfulHandshake : ReceiveExecutionFlag.OnFailedHandshake))
-            .Do(h => h.Item2.Invoke(version));
+            .Do(h => h.Item2.Invoke(version, lastSender));
         
         HandleAction(action, lastSender);
     }
