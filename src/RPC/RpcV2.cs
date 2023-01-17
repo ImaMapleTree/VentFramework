@@ -7,7 +7,7 @@ using HarmonyLib;
 using Hazel;
 using InnerNet;
 using UnityEngine;
-using VentLib.Interfaces;
+using VentLib.RPC.Interfaces;
 using VentLib.Utilities;
 
 namespace VentLib.RPC;

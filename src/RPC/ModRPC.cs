@@ -4,8 +4,8 @@ using System.Reflection;
 using HarmonyLib;
 using MonoMod.RuntimeDetour;
 using VentLib.Extensions;
-using VentLib.Interfaces;
 using VentLib.Logging;
+using VentLib.RPC.Interfaces;
 
 namespace VentLib.RPC;
 
@@ -35,7 +35,7 @@ public class ModRPC
         Parameters = ParameterHelper.Verify(targetMethod.GetParameters());
         Type? declaringType = targetMethod.DeclaringType;
         if (declaringType == null)
-            throw new ArgumentException($"Unable to Register: {targetMethod.Name}. Reason: VentFramework does not current allow for methods without declaring types");
+            throw new ArgumentException($"Unable to Register: {targetMethod.Name}. Reason: VentLib does not current allow for methods without declaring types");
 
         Assembly = declaringType.Assembly;
         hook = RpcHookHelper.Generate(this);

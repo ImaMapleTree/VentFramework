@@ -1,6 +1,6 @@
 using Hazel;
 
-namespace VentLib.Interfaces;
+namespace VentLib.RPC.Interfaces;
 
 public interface IRpcWritable
 {

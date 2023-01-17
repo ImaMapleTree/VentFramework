@@ -5,13 +5,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Threading.Tasks;
 using HarmonyLib;
 using InnerNet;
 using MonoMod.RuntimeDetour;
 using UnityEngine;
 using VentLib.Extensions;
-using VentLib.Interfaces;
 using VentLib.Logging;
+using VentLib.RPC.Interfaces;
 using VentLib.Utilities;
 
 namespace VentLib.RPC;
@@ -102,10 +103,26 @@ public class DetouredSender
         if (modRPC.Invocation is MethodInvocation.ExecuteAfter) modRPC.InvokeTrampoline(args!);
     }
 
+    private async void DelayedSend(int[]? targets, object?[] args)
+    {
+        int retries = 0;
+        while ((AmongUsClient.Instance == null || PlayerControl.LocalPlayer == null) && retries < 50)
+        {
+            await Task.Delay(100);
+            retries++;
+        }
+
+        if (retries >= 50)
+            throw new TimeoutException("Could not gather client instance");
+        Send(targets, args);
+    }
+
     internal void Send(int[]? targets, object?[] args)
     {
-        if (AmongUsClient.Instance == null) return;
-        VentLogger.Fatal(targets?.StrJoin());
+        if (AmongUsClient.Instance == null || PlayerControl.LocalPlayer == null) {
+            DelayedSend(targets, args);
+            return;
+        }
         if (!CanSend(out int[]? lastSender) || !Vents.CallingAssemblyFlag().HasFlag(VentControlFlag.AllowedSender)) return;
         lastSender ??= targets;
         RealSend(lastSender, args);

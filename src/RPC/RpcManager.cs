@@ -15,7 +15,7 @@ public static class RpcManager
     internal static void Register(ModRPC rpc)
     {
         if (Vents.BuiltinRPCs.Contains(rpc.CallId) && rpc.Attribute is not VentRPCAttribute)
-            throw new ArgumentException($"RPC {rpc.CallId} shares an ID with a Builtin-VentFramework RPC. Please choose a different ID. (Builtin-IDs: {Vents.BuiltinRPCs.StrJoin()})");
+            throw new ArgumentException($"RPC {rpc.CallId} shares an ID with a Builtin-VentLib RPC. Please choose a different ID. (Builtin-IDs: {Vents.BuiltinRPCs.StrJoin()})");
 
         if (!Vents.RpcBindings.ContainsKey(rpc.CallId))
             Vents.RpcBindings.Add(rpc.CallId, new List<ModRPC>());
@@ -40,33 +40,35 @@ public static class RpcManager
         if (player != null && player.PlayerId == PlayerControl.LocalPlayer.PlayerId) return true;
         string sender = "Client: " + (player == null ? "?" : player.GetClientId());
         string receiverType = AmongUsClient.Instance.AmHost ? "Host" : "NonHost";
-        VentLogger.Info($"Custom RPC Received ({customId}) from \"{sender}\" as {receiverType}", "VentFramework");
+        VentLogger.Info($"Custom RPC Received ({customId}) from \"{sender}\" as {receiverType}", "VentLib");
         if (!Vents.RpcBindings.TryGetValue(customId, out List<ModRPC>? rpcs))
         {
-            VentLogger.Warn($"Received Unknown RPC: {customId}", "VentFramework");
+            VentLogger.Warn($"Received Unknown RPC: {customId}", "VentLib");
             reader.Recycle();
             return false;
         }
 
+        object[]? args = null;
         foreach (ModRPC modRPC in rpcs)
         {
             // Cases in which the client is not the correct listener
-            if (!CanReceive(modRPC.Receivers)) continue;
+            if (!CanReceive(actor, modRPC.Receivers)) continue;
             if (!Vents.CallingAssemblyFlag(modRPC.Assembly).HasFlag(VentControlFlag.AllowedReceiver)) continue;
-            modRPC.InvokeTrampoline(ParameterHelper.Cast(modRPC.Parameters, reader));
+            args ??= ParameterHelper.Cast(modRPC.Parameters, reader);
+            modRPC.InvokeTrampoline(args);
         }
 
         return true;
     }
 
-    private static bool CanReceive(RpcActors actor)
+    private static bool CanReceive(RpcActors actor, RpcActors localActor = RpcActors.Everyone)
     {
         return actor switch
         {
             RpcActors.None => false,
-            RpcActors.Host => AmongUsClient.Instance.AmHost,
-            RpcActors.NonHosts => !AmongUsClient.Instance.AmHost,
-            RpcActors.LastSender => true,
+            RpcActors.Host => AmongUsClient.Instance.AmHost && localActor is RpcActors.Host or RpcActors.NonHosts,
+            RpcActors.NonHosts => !AmongUsClient.Instance.AmHost && localActor is RpcActors.Everyone or RpcActors.NonHosts,
+            RpcActors.LastSender => localActor is RpcActors.Everyone or RpcActors.LastSender,
             RpcActors.Everyone => true,
             _ => throw new ArgumentOutOfRangeException()
         };

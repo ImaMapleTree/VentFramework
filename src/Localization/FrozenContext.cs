@@ -46,7 +46,6 @@ public class FrozenContext
     private string GetPath(string key)
     {
         string? root = parentAttribute?.GetPath();
-        VentLogger.Fatal("Root: " + root);
         return root == null ? key : $"{root}.{key}";
     }
 }

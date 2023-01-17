@@ -5,10 +5,11 @@ using System.Linq;
 using System.Reflection;
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
-using VentLib.Interfaces;
 using VentLib.Localization;
 using VentLib.Logging;
 using VentLib.RPC;
+using VentLib.RPC.Interfaces;
+using VentLib.Version;
 
 namespace VentLib;
 
@@ -19,7 +20,8 @@ namespace VentLib;
 public static class Vents
 {
     public static readonly uint[] BuiltinRPCs = Enum.GetValues<VentCall>().Select(rpc => (uint)rpc).ToArray();
-
+    public static VersionControl VersionControl = new();
+    
     internal static Assembly rootAssemby = null!;
     internal static Harmony Harmony = new("me.tealeaf.VentLib");
     internal static readonly Dictionary<uint, List<ModRPC>> RpcBindings = new();
@@ -61,7 +63,7 @@ public static class Vents
     {
         if (!RpcBindings.TryGetValue(callId, out List<ModRPC>? RPCs))
         {
-            VentLogger.Warn($"Attempted to find unregistered RPC: {callId}", "VentFramework");
+            VentLogger.Warn($"Attempted to find unregistered RPC: {callId}", "VentLib");
             return null;
         }
 
@@ -83,7 +85,7 @@ public static class Vents
             .SelectMany(t => t.GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
             .Where(m => m.GetCustomAttribute<ModRPCAttribute>() != null).ToList();
 
-        VentLogger.Info($"Registering {methods.Count} methods from {assembly.GetName().Name}", "VentFramework");
+        VentLogger.Info($"Registering {methods.Count} methods from {assembly.GetName().Name}", "VentLib");
         foreach (var method in methods)
         {
             ModRPCAttribute attribute = method.GetCustomAttribute<ModRPCAttribute>()!;
@@ -103,16 +105,6 @@ public static class Vents
         IL2CPPChainloader.Instance.PluginLoad += (_, assembly, _) => Register(assembly, assembly == rootAssemby);
         Register(Assembly.GetExecutingAssembly());
         if (patch) Harmony.PatchAll(Assembly.GetExecutingAssembly());
-    }
-
-    public static class Settings
-    {
-        internal static bool SendVersionCheckOnJoin = true;
-
-        public static void CheckVersionOnPlayerJoin(bool check)
-        {
-            SendVersionCheckOnJoin = check;
-        }
     }
 }
 
