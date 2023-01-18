@@ -7,6 +7,16 @@ namespace VentLib.Utilities;
 
 public static class Async
 {
+    public static async void Execute(Action action)
+    {
+        await Task.Run(action);
+    }
+
+    public static async void Execute<T>(Func<T> producer, Action<T> consumer)
+    {
+        consumer(await Task.Run(producer));
+    }
+    
     /// <summary>
     /// Schedules a task to be executed upon in the background. Contrary to common believe this action DOES block. But
     /// it only blocks when running the action. Thus this method should only be used to schedule light tasks or one-offs.

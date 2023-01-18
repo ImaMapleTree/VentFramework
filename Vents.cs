@@ -101,6 +101,7 @@ public static class Vents
     public static void Initialize(bool patch = true)
     {
         rootAssemby = Assembly.GetCallingAssembly();
+        VentLogger.Fatal(rootAssemby.ToString());
         Localizer.Initialize();
         IL2CPPChainloader.Instance.PluginLoad += (_, assembly, _) => Register(assembly, assembly == rootAssemby);
         Register(Assembly.GetExecutingAssembly());
