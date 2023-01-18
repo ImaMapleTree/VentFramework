@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using VentLib.Logging;
 
 // ReSharper disable LoopVariableIsNeverChangedInsideLoop
 
@@ -48,7 +49,8 @@ public static class Async
     {
         int intDelay = (int)(1000f * delay);
         await Task.Delay(new TimeSpan(0, 0, 0, 0, intDelay));
-        action();
+        try { action(); }
+        catch (Exception e) { VentLogger.Exception(e); }
         while (repeat) {
             await Task.Delay(new TimeSpan(0, 0, 0, 0, intDelay));
             action();
@@ -59,7 +61,8 @@ public static class Async
     {
         int intDelay = (int)(1000f * delay);
         await Task.Delay(new TimeSpan(0, 0, 0, 0, intDelay));
-        action(supplier());
+        try { action(supplier()); }
+        catch (Exception e) { VentLogger.Exception(e); }
         while (repeat) {
             await Task.Delay(new TimeSpan(0, 0, 0, 0, intDelay));
             action(supplier());
