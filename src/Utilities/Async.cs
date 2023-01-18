@@ -1,11 +1,13 @@
 using System;
 using System.Threading.Tasks;
 using VentLib.Logging;
+using VentLib.Utilities.Attributes;
 
 // ReSharper disable LoopVariableIsNeverChangedInsideLoop
 
 namespace VentLib.Utilities;
 
+[RegisterInIl2Cpp]
 public static class Async
 {
     public static async void Execute(Action action)

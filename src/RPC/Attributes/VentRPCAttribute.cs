@@ -1,4 +1,4 @@
-namespace VentLib.RPC;
+namespace VentLib.RPC.Attributes;
 
 public class VentRPCAttribute: ModRPCAttribute
 {

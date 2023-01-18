@@ -8,7 +8,9 @@ using HarmonyLib;
 using VentLib.Localization;
 using VentLib.Logging;
 using VentLib.RPC;
+using VentLib.RPC.Attributes;
 using VentLib.RPC.Interfaces;
+using VentLib.Utilities.Attributes;
 using VentLib.Version;
 
 namespace VentLib;
@@ -103,6 +105,7 @@ public static class Vents
         rootAssemby = Assembly.GetCallingAssembly();
         VentLogger.Fatal(rootAssemby.ToString());
         Localizer.Initialize();
+        RegisterInIl2CppAttribute.Initialize();
         IL2CPPChainloader.Instance.PluginLoad += (_, assembly, _) => Register(assembly, assembly == rootAssemby);
         Register(Assembly.GetExecutingAssembly());
         if (patch) Harmony.PatchAll(Assembly.GetExecutingAssembly());

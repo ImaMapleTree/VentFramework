@@ -4,8 +4,9 @@ using System.Linq;
 using System.Reflection;
 using AmongUs.Data;
 using HarmonyLib;
+using VentLib.Localization.Attributes;
 using VentLib.Logging;
-using static VentLib.Localization.LocalizedAttribute;
+using static VentLib.Localization.Attributes.LocalizedAttribute;
 
 namespace VentLib.Localization;
 
@@ -86,12 +87,12 @@ public static class Localizer
 
     private static void Inject(Language language)
     {
-        List<LocalizedAttribute> sortedAttributes = Attributes.Keys.ToList();
+        List<LocalizedAttribute> sortedAttributes = LocalizedAttribute.Attributes.Keys.ToList();
         sortedAttributes.Sort();
 
         foreach (LocalizedAttribute attribute in sortedAttributes)
         {
-            ReflectionObject reflectionObject = Attributes[attribute];
+            ReflectionObject reflectionObject = LocalizedAttribute.Attributes[attribute];
             if (attribute.Source?.ReflectionType is ReflectionType.Class) continue;
             string value = GetValueFromPath(language, attribute.GetPath());
             reflectionObject.SetValue(value);

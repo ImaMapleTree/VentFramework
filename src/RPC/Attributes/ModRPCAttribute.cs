@@ -1,7 +1,7 @@
 #nullable enable
 using System;
 
-namespace VentLib.RPC;
+namespace VentLib.RPC.Attributes;
 
 
 [AttributeUsage(AttributeTargets.Method)]

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using VentLib.Localization.Attributes;
 using VentLib.Logging;
 
 namespace VentLib.Localization;

@@ -12,6 +12,7 @@ using MonoMod.RuntimeDetour;
 using UnityEngine;
 using VentLib.Extensions;
 using VentLib.Logging;
+using VentLib.RPC.Attributes;
 using VentLib.RPC.Interfaces;
 using VentLib.Utilities;
 

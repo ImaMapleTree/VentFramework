@@ -5,6 +5,7 @@ using HarmonyLib;
 using MonoMod.RuntimeDetour;
 using VentLib.Extensions;
 using VentLib.Logging;
+using VentLib.RPC.Attributes;
 using VentLib.RPC.Interfaces;
 
 namespace VentLib.RPC;

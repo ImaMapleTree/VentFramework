@@ -2,6 +2,7 @@ using System.Linq;
 using HarmonyLib;
 using VentLib.Logging;
 using VentLib.RPC;
+using VentLib.RPC.Attributes;
 using VentLib.Utilities;
 using VentLib.Version.Handshake.Patches;
 

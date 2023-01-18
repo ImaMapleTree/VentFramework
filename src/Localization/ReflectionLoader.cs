@@ -4,8 +4,7 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using MonoMod.RuntimeDetour;
-using VentLib.Logging;
-using static VentLib.Localization.LocalizedAttribute;
+using VentLib.Localization.Attributes;
 
 namespace VentLib.Localization;
 
@@ -27,7 +26,7 @@ public class ReflectionLoader
                 parentAttribute.Subgroup = parentAttribute.GetPath();
                 parentAttribute.Group = parent.GetPath();
             }
-            Attributes.Add(parentAttribute, parentAttribute.Source = new ReflectionObject(cls, ReflectionType.Class));
+            LocalizedAttribute.Attributes.Add(parentAttribute, parentAttribute.Source = new ReflectionObject(cls, ReflectionType.Class));
         }
 
         List<FieldInfo> staticFields = cls.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy).ToList();
@@ -54,7 +53,7 @@ public class ReflectionLoader
         if (parent != null)
             attribute.GroupSupplier = parent.GetPath;
         
-        Attributes.Add(attribute, attribute.Source = new ReflectionObject(field, reflectionType));
+        LocalizedAttribute.Attributes.Add(attribute, attribute.Source = new ReflectionObject(field, reflectionType));
     }
 
     public static void RegisterProperty(PropertyInfo property, LocalizedAttribute? parent, Assembly assembly)
@@ -67,7 +66,7 @@ public class ReflectionLoader
         if (parent != null)
             attribute.GroupSupplier = parent.GetPath;
         
-        Attributes.Add(attribute, attribute.Source = new ReflectionObject(property, ReflectionType.Property));
+        LocalizedAttribute.Attributes.Add(attribute, attribute.Source = new ReflectionObject(property, ReflectionType.Property));
     }
 
     public static string PropertyInfoHook(Func<object, string> getter, object self, LocalizedAttribute? parent)

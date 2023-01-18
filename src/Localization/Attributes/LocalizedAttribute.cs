@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace VentLib.Localization;
+namespace VentLib.Localization.Attributes;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Parameter)]
 public class LocalizedAttribute: Attribute, IComparable<LocalizedAttribute>

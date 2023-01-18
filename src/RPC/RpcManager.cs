@@ -6,6 +6,7 @@ using Hazel;
 using InnerNet;
 using VentLib.Extensions;
 using VentLib.Logging;
+using VentLib.RPC.Attributes;
 using VentLib.Utilities;
 
 namespace VentLib.RPC;

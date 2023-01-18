@@ -1,6 +1,7 @@
 #nullable enable
 using System.Reflection;
 using VentLib.Logging;
+using VentLib.RPC.Attributes;
 using VentLib.Utilities;
 
 // ReSharper disable RedundantAssignment
