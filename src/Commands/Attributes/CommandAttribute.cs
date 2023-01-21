@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using HarmonyLib;
+using VentLib.Localization;
 
 namespace VentLib.Commands.Attributes;
 
@@ -17,10 +20,15 @@ public class CommandAttribute: Attribute
     {
         Aliases = aliases;
     }
-
-    public CommandAttribute(string[] aliases, CommandUser user = CommandUser.Everyone, HideCommand hideCommand = HideCommand.Always, bool caseSensitive = false)
+    
+    public CommandAttribute(string[]? localeAliases, params string[] aliases)
     {
-        Aliases = aliases;
+        Aliases = localeAliases == null ? aliases : aliases.AddRangeToArray(localeAliases.Select(a => Localizer.Get(a)).ToArray());
+    }
+
+    public CommandAttribute(string[] aliases, string[]? localeAliases = null, CommandUser user = CommandUser.Everyone, HideCommand hideCommand = HideCommand.Always, bool caseSensitive = false)
+    {
+        Aliases = localeAliases == null ? aliases : aliases.AddRangeToArray(localeAliases.Select(a => Localizer.Get(a)).ToArray());
         User = user;
         HideCommand = hideCommand;
         CaseSensitive = caseSensitive;

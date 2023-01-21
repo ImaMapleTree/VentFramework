@@ -21,7 +21,8 @@ public class CommandRunner
 
     public void Run(CommandContext context)
     {
-        List<CommandAttribute> commandsToBeRun = registered.Keys.Where(cmd => cmd.Aliases.Contains(context.Alias)).ToList();
+        string lowerAlias = context.Alias.ToLower();
+        List<CommandAttribute> commandsToBeRun = registered.Keys.Where(cmd => cmd.Aliases.Contains(context.Alias) || !cmd.CaseSensitive && cmd.Aliases.Any(str => str.ToLower().Equals(lowerAlias))).ToList();
         
         while (commandsToBeRun.Count > 0)
         {
@@ -47,7 +48,7 @@ public class CommandRunner
                 .Where(cmd => cmd.Subcommands.Count > 0)
                 .Where(attr => attr.User is CommandUser.Everyone || (AmongUsClient.Instance.AmHost && PlayerControl.LocalPlayer.PlayerId == context1.Source.PlayerId))
                 .SelectMany(cmd => cmd.Subcommands)
-                .Where(cmd => context.Alias != null && cmd!.Aliases.Contains(context.Alias)).ToList();
+                .Where(cmd => cmd.Aliases.Contains(context.Alias) || !cmd.CaseSensitive && cmd.Aliases.Any(str => str.ToLower().Equals(lowerAlias))).ToList();
         }
     }
 
