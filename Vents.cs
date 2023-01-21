@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
+using VentLib.Commands;
 using VentLib.Localization;
 using VentLib.Logging;
 using VentLib.RPC;
@@ -23,6 +24,7 @@ public static class Vents
 {
     public static readonly uint[] BuiltinRPCs = Enum.GetValues<VentCall>().Select(rpc => (uint)rpc).ToArray();
     public static VersionControl VersionControl = new();
+    public static CommandRunner CommandRunner = new();
     
     internal static Assembly rootAssemby = null!;
     internal static Harmony Harmony = new("me.tealeaf.VentLib");
@@ -83,6 +85,8 @@ public static class Vents
 
         if (localize)
             Localizer.Load(assembly);
+        
+        CommandRunner.Register(assembly);
 
         var methods = assembly.GetTypes()
             .SelectMany(t => t.GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))

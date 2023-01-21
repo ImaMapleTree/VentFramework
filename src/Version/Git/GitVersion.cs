@@ -1,22 +1,55 @@
 using System;
+using System.Linq;
 using Hazel;
+using VentLib.Logging;
+using RlAssembly = System.Reflection.Assembly;
 
 namespace VentLib.Version.Git;
 
 public class GitVersion: Version
 {
-    public readonly string MajorVersion = ThisAssembly.Git.BaseVersion.Major;
-    public readonly string MinorVersion = ThisAssembly.Git.BaseVersion.Minor;
-    public readonly string PatchNumber = ThisAssembly.Git.BaseVersion.Patch;
+    public readonly string MajorVersion;
+    public readonly string MinorVersion;
+    public readonly string PatchNumber;
 
-    public readonly string CommitNumber = ThisAssembly.Git.Commit;
-    public readonly string Branch = ThisAssembly.Git.Branch;
+    public readonly string CommitNumber;
+    public readonly string Branch;
 
-    public readonly string Sha = ThisAssembly.Git.Sha;
-    public readonly string Tag = ThisAssembly.Git.Tag;
+    public readonly string Sha;
+    public readonly string Tag;
 
-    public GitVersion() { }
+    private static Type? _thisAssembly;
+    
+    public GitVersion(RlAssembly? targetAssembly = null)
+    {
+        targetAssembly ??= Vents.rootAssemby;
+        _thisAssembly ??= AppDomain.CurrentDomain.GetAssemblies()
+           .Where(assembly => targetAssembly == null || assembly.FullName == targetAssembly.FullName)
+           .SelectMany(assembly =>
+           {
+               try { return assembly.GetTypes(); }
+               catch (Exception) { return Array.Empty<Type>(); }
+           })
+           .FirstOrDefault(type => type.Name == "ThisAssembly");
 
+        if (_thisAssembly == null)
+            throw new Exception("Assemblies relying on GitVersion must include GitInfo as a package dependency.");
+
+        Type git = _thisAssembly.GetNestedType("Git")!;
+        Type baseVersion = git.GetNestedType("BaseVersion")!;
+
+        MajorVersion = StaticValue(baseVersion, "Major");
+        MinorVersion = StaticValue(baseVersion, "Minor");
+        PatchNumber = StaticValue(baseVersion, "Patch");
+
+        CommitNumber = StaticValue(git, "Commit");
+        Branch = StaticValue(git, "Branch");
+
+        Sha = StaticValue(git, "Sha");
+        Tag = StaticValue(git, "Tag");
+    }
+
+    // TODO: Custom Git interface and Mod updater
     private GitVersion(MessageReader reader)
     {
         MajorVersion = reader.ReadString();
@@ -29,7 +62,6 @@ public class GitVersion: Version
         Sha = reader.ReadString();
         Tag = reader.ReadString();
     }
-
     public override Version Read(MessageReader reader) => new GitVersion(reader);
 
     protected override void WriteInfo(MessageWriter writer)
@@ -58,4 +90,6 @@ public class GitVersion: Version
     {
         return $"GitVersion({MajorVersion}.{MinorVersion}.{PatchNumber} Branch: {Branch} Commit: {CommitNumber})";
     }
+
+    private static string StaticValue(Type type, string fieldName) => (string)type.GetField(fieldName)!.GetValue(null)!;
 }
