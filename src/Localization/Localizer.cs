@@ -114,7 +114,10 @@ public static class Localizer
         return languages == null ? new List<string>() : languages.Select(lang => GetValueFromPath(lang!, keyPath)).ToList();
     }
 
-    internal static void Initialize()
+    /// <summary>
+    /// Initializes all translations
+    /// </summary>
+    public static void Initialize()
     {
         _currentLanguage = DataManager.Settings.Language.CurrentLanguage.ToString();
         _loader = LanguageLoader.Load(LanguageFolder);
