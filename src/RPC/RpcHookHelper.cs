@@ -109,7 +109,7 @@ public class DetouredSender
         int retries = 0;
         while ((AmongUsClient.Instance == null || PlayerControl.LocalPlayer == null) && retries < 50)
         {
-            await Task.Delay(100);
+            await Task.Delay(500);
             retries++;
         }
 

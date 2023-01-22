@@ -8,9 +8,9 @@ namespace VentLib.Localization;
 
 public class Language
 {
-    public string Name = null!;
-    public List<string> Authors = null!;
-    public Dictionary<object, object> Translations = null!;
+    public string Name { get; set; }= null!;
+    public List<string> Authors { get; set; } = null!;
+    public Dictionary<object, object> Translations { get; set; } = null!;
 
     [YamlIgnore]
     internal FileInfo? File;
@@ -25,4 +25,13 @@ public class Language
         stream.Write(Encoding.ASCII.GetBytes(yamlString));
         stream.Close();
     }
+
+    /// <summary>
+    /// Returns a translation for the given key path
+    /// </summary>
+    /// <param name="keyPath">Key path of the translation</param>
+    /// <returns>A translation for the given key path or "N/A" if no translation exists</returns>
+    public string Translate(string keyPath) => Localizer.GetValueFromPath(this, keyPath);
+
+    public override string ToString() => $"Language({Name})";
 }

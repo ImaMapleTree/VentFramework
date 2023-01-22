@@ -18,7 +18,7 @@ public static class VentLogger
 
     public static void SendInGame(string message)
     {
-        VentLogger.Debug($"Sending In Game: {message}");
+        Debug($"Sending In Game: {message}");
         if (DestroyableSingleton<HudManager>.Instance) DestroyableSingleton<HudManager>.Instance.Notifier.AddItem(message);
     }
 
@@ -30,7 +30,7 @@ public static class VentLogger
 
         ConsoleManager.SetConsoleColor(level.Color);
         string tagPrefix = tag == null ? "" : $"[{tag}]";
-        string fullMessage = $"[{levelPrefix}{sourcePrefix}] [{DateTime.Now:hh:mm:ss}]{tagPrefix} {message}";
+        string fullMessage = $"[{levelPrefix}{sourcePrefix}][{DateTime.Now:hh:mm:ss}]{tagPrefix} {message}";
         if (Configuration.Output is LogOutput.StandardOut)
             ConsoleManager.StandardOutStream?.WriteLine(fullMessage);
         else

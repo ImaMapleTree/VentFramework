@@ -18,11 +18,11 @@ internal static class PlayerJoinPatch
         uint versionCheck = (uint)VentCall.VersionCheck;
         ModRPC rpc = Vents.FindRPC(versionCheck, AccessTools.Method(typeof(VersionCheck), nameof(VersionCheck.RequestVersion)))!;
         WaitSet.Add(client.Id);
-        Async.Schedule(() =>
+        Async.ScheduleThreaded(() =>
         {
             rpc.Send(new[] { client.Id });
             if (vc.ResponseTimer <= 0) return;
-            Async.Schedule(() =>
+            Async.ScheduleThreaded(() =>
             {
                 if (!WaitSet.Contains(client.Id)) return;
                 Vents.LastSenders[versionCheck] = client.Character;

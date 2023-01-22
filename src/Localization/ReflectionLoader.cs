@@ -8,9 +8,9 @@ using VentLib.Localization.Attributes;
 
 namespace VentLib.Localization;
 
-public class ReflectionLoader
+internal static class ReflectionLoader
 {
-    public static void RegisterClass(Type cls, LocalizedAttribute? parent = null)
+    internal static void RegisterClass(Type cls, LocalizedAttribute? parent = null)
     {
         LocalizedAttribute? parentAttribute = cls.GetCustomAttribute<LocalizedAttribute>();
         if (parentAttribute != null)
@@ -46,7 +46,7 @@ public class ReflectionLoader
         cls.GetNestedTypes(BindingFlags.Default | BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic).Do(clz => RegisterClass(clz, parentAttribute));
     }
 
-    public static void RegisterField(FieldInfo field, ReflectionType reflectionType, LocalizedAttribute? parent)
+    private static void RegisterField(FieldInfo field, ReflectionType reflectionType, LocalizedAttribute? parent)
     {
         LocalizedAttribute? attribute = field.GetCustomAttribute<LocalizedAttribute>();
         if (attribute == null) return;
@@ -56,7 +56,7 @@ public class ReflectionLoader
         LocalizedAttribute.Attributes.Add(attribute, attribute.Source = new ReflectionObject(field, reflectionType));
     }
 
-    public static void RegisterProperty(PropertyInfo property, LocalizedAttribute? parent, Assembly assembly)
+    private static void RegisterProperty(PropertyInfo property, LocalizedAttribute? parent, Assembly assembly)
     {
         LocalizedAttribute? attribute = property.GetCustomAttribute<LocalizedAttribute>();
         if (attribute == null) return;
@@ -69,7 +69,7 @@ public class ReflectionLoader
         LocalizedAttribute.Attributes.Add(attribute, attribute.Source = new ReflectionObject(property, ReflectionType.Property));
     }
 
-    public static string PropertyInfoHook(Func<object, string> getter, object self, LocalizedAttribute? parent)
+    private static string PropertyInfoHook(Func<object, string> getter, object self, LocalizedAttribute? parent)
     {
         string value = getter(self);
         if (parent == null) return value;
@@ -77,7 +77,7 @@ public class ReflectionLoader
         return value;
     }
 
-    public static string PropertyModifyHook(Func<object, string> getter, object self, LocalizedAttribute target, string assemblyName, bool setKey)
+    private static string PropertyModifyHook(Func<object, string> getter, object self, LocalizedAttribute target, string assemblyName, bool setKey)
     {
         // DO NOT REMOVE BELOW. THIS IS REQUIRED TO POSSIBLY INVOKE ANY REQS
         string value = getter(self);

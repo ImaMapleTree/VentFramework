@@ -8,7 +8,7 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace VentLib.Localization;
 
-public class LanguageLoader
+internal class LanguageLoader
 {
     internal static ISerializer Serializer = new SerializerBuilder().WithNamingConvention(PascalCaseNamingConvention.Instance).Build();
     public Dictionary<string, HashSet<string>> SupportedLanguages = new();
@@ -17,14 +17,14 @@ public class LanguageLoader
 
     private IDeserializer deserializer = new DeserializerBuilder().WithNamingConvention(PascalCaseNamingConvention.Instance).Build();
 
-    public static LanguageLoader Load(string directory)
+    internal static LanguageLoader Load(string directory)
     {
         DirectoryInfo langDirectory = new(directory);
         if (!langDirectory.Exists) langDirectory.Create();
         return new LanguageLoader(langDirectory);
     }
 
-    public Dictionary<string, Language> Get(string language)
+    internal Dictionary<string, Language> Get(string language)
     {
         if (languageAssemblyDictionary.TryGetValue(language, out Dictionary<string, Language>? assemblyDictionary))
             return assemblyDictionary;

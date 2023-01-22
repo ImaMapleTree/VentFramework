@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using Hazel;
-using VentLib.Logging;
 using RlAssembly = System.Reflection.Assembly;
 
 namespace VentLib.Version.Git;
@@ -19,6 +18,17 @@ public class GitVersion: Version
     public readonly string Tag;
 
     private static Type? _thisAssembly;
+
+    internal GitVersion()
+    {
+        MajorVersion = null!;
+        MinorVersion = null!;
+        PatchNumber = null!;
+        CommitNumber = null!;
+        Branch = null!;
+        Sha = null!;
+        Tag = null!;
+    }
     
     public GitVersion(RlAssembly? targetAssembly = null)
     {

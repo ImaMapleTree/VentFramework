@@ -33,6 +33,6 @@ public static class PetBypass
         
         if (!applyNow) return;
         ShapeshiftBypass.Shapeshift(player, player, false);
-        Async.ScheduleInStep(() => ShapeshiftBypass.RevertShapeshift(player, false), NetUtils.DeriveDelay(0.2f));
+        Async.Schedule(() => ShapeshiftBypass.RevertShapeshift(player, false), NetUtils.DeriveDelay(0.2f));
     }
 }

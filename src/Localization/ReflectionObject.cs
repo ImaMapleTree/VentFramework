@@ -3,18 +3,18 @@ using System.Reflection;
 
 namespace VentLib.Localization;
 
-public class ReflectionObject
+internal class ReflectionObject
 {
-    public object Object;
-    public ReflectionType ReflectionType;
+    internal readonly ReflectionType ReflectionType;
+    private object Object;
 
-    public ReflectionObject(object obj, ReflectionType reflectionType)
+    internal ReflectionObject(object obj, ReflectionType reflectionType)
     {
         Object = obj;
         ReflectionType = reflectionType;
     }
 
-    public void SetValue(object value)
+    internal void SetValue(object value)
     {
         switch (ReflectionType)
         {

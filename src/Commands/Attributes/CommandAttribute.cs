@@ -1,37 +1,51 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using HarmonyLib;
 using VentLib.Localization;
+using VentLib.Logging;
 
 namespace VentLib.Commands.Attributes;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 public class CommandAttribute: Attribute
 {
-    public readonly string[] Aliases;
+    public string[] Aliases = null!;
     public readonly CommandUser User = CommandUser.Everyone;
     public readonly HideCommand HideCommand = HideCommand.Always;
     public readonly bool CaseSensitive;
+
+    private readonly string[] _aliases;
+    private readonly string[]? _localeAliases;
 
     internal readonly List<CommandAttribute> Subcommands = new();
 
     public CommandAttribute(params string[] aliases)
     {
-        Aliases = aliases;
+        _aliases = aliases;
     }
     
     public CommandAttribute(string[]? localeAliases, params string[] aliases)
     {
-        Aliases = localeAliases == null ? aliases : aliases.AddRangeToArray(localeAliases.Select(a => Localizer.Get(a)).ToArray());
+        _localeAliases = localeAliases;
+        _aliases = aliases;
     }
 
     public CommandAttribute(string[] aliases, string[]? localeAliases = null, CommandUser user = CommandUser.Everyone, HideCommand hideCommand = HideCommand.Always, bool caseSensitive = false)
     {
-        Aliases = localeAliases == null ? aliases : aliases.AddRangeToArray(localeAliases.Select(a => Localizer.Get(a)).ToArray());
+        _localeAliases = localeAliases;
+        _aliases = aliases;
+        
         User = user;
         HideCommand = hideCommand;
         CaseSensitive = caseSensitive;
+    }
+
+    internal void Generate(Assembly assembly)
+    {
+        Aliases = _localeAliases == null ? _aliases : _aliases.AddRangeToArray(_localeAliases.SelectMany(a => Localizer.GetAll(a, assembly.GetName().Name)).ToArray());
     }
 
     public override bool Equals(object? obj)

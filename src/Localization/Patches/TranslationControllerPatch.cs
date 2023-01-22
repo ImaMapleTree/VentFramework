@@ -1,11 +1,10 @@
 using HarmonyLib;
-using VentLib.Localization;
 using VentLib.Logging;
 
-namespace VentLib.Patches;
+namespace VentLib.Localization.Patches;
 
 [HarmonyPatch(typeof(TranslationController), nameof(TranslationController.SetLanguage))]
-public class LanguageSetPatch
+internal class LanguageSetPatch
 {
     private static void Postfix(TranslationController __instance, [HarmonyArgument(0)] TranslatedImageSet lang)
     {

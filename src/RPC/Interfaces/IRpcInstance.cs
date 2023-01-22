@@ -10,6 +10,6 @@ public interface IRpcInstance
 
     void EnableInstance()
     {
-        Instances.Add(this.GetType(), this);
+        Instances.Add(GetType(), this);
     }
 }
