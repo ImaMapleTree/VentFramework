@@ -5,9 +5,10 @@ namespace VentLib.Utilities.Extensions;
 
 public static class CollectionExtensions
 {
-    public static string StrJoin<T>(this IEnumerable<T> list)
+    public static string StrJoin<T>(this IEnumerable<T> list, string delimiters = "[]")
     {
-        return "[" + string.Join(", ", list) + "]";
+        delimiters = delimiters.Length < 2 ? "  " : delimiters;
+        return delimiters[0] + string.Join(", ", list) + delimiters[1];
     }
 
     public static bool TryGet<TKey, TValue>(this Il2CppSystem.Collections.Generic.Dictionary<TKey, TValue> dictionary, TKey key, out TValue? v)

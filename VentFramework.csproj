@@ -2,7 +2,7 @@
     <PropertyGroup>
         <Title>VentFramework</Title>
         <Description>A modding framework for the popular social deduction game Among Us </Description>
-        <Version>1.0.7.66</Version>
+        <Version>1.0.7.67</Version>
         <RootNamespace>VentLib</RootNamespace>
         <TargetFramework>net6.0</TargetFramework>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
@@ -37,8 +37,4 @@
     <ItemGroup>
         <None Include="LICENSE" Pack="true" PackagePath="" />
     </ItemGroup>
-
-    <Target Name="Copy" AfterTargets="Build">
-        <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="E:/SteamLibrary/steamapps/common/Among Us/BepInEx/plugins/" Condition="'$(Configuration)' == 'Debug'" />
-    </Target>
 </Project>
