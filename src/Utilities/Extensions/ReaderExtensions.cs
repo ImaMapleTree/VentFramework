@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Hazel;
 using VentLib.RPC;
 
-namespace VentLib.Extensions;
+namespace VentLib.Utilities.Extensions;
 
 public static class ReaderExtensions
 {

@@ -13,11 +13,10 @@ public static class VentRPC
     [VentRPC(VentCall.SetControlFlag, RpcActors.Host, RpcActors.NonHosts)]
     public static void SetControlFlag(string assemblyName, int controlFlag)
     {
-        VentLogger.Trace($"SetControlFlag(assemblyName={assemblyName}, controlFlag={controlFlag})", "VentLib");
+        VentLogger.Trace($"SetControlFlag(assemblyName={assemblyName}, controlFlag={controlFlag})", "SetControlFlag");
         Assembly? assembly = AssemblyUtils.FindAssemblyFromFullName(assemblyName);
         if (assembly == null) return;
         Vents.SetControlFlag(assembly, (VentControlFlag)controlFlag);
-        VentLogger.Trace($"Control Flag Set For: {assembly.GetName().Name} | Flag: {(VentControlFlag)controlFlag})");
     }
 }
 

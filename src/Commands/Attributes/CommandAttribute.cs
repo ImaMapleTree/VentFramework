@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using VentLib.Localization;
-using VentLib.Logging;
 
 namespace VentLib.Commands.Attributes;
 
@@ -21,6 +19,7 @@ public class CommandAttribute: Attribute
     private readonly string[]? _localeAliases;
 
     internal readonly List<CommandAttribute> Subcommands = new();
+    internal bool IsSubcommand;
 
     public CommandAttribute(params string[] aliases)
     {

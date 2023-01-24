@@ -3,10 +3,10 @@ using System;
 using System.Reflection;
 using HarmonyLib;
 using MonoMod.RuntimeDetour;
-using VentLib.Extensions;
 using VentLib.Logging;
 using VentLib.RPC.Attributes;
 using VentLib.RPC.Interfaces;
+using VentLib.Utilities.Extensions;
 
 namespace VentLib.RPC;
 

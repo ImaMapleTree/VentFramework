@@ -22,7 +22,9 @@ public class CommandRunner
     public void Run(CommandContext context)
     {
         string lowerAlias = context.Alias.ToLower();
-        List<CommandAttribute> commandsToBeRun = Registered.Keys.Where(cmd => cmd.Aliases.Contains(context.Alias) || !cmd.CaseSensitive && cmd.Aliases.Any(str => str.ToLower().Equals(lowerAlias))).ToList();
+        List<CommandAttribute> commandsToBeRun = Registered.Keys.Where(cmd => 
+            !cmd.IsSubcommand && (cmd.Aliases.Contains(context.Alias) || !cmd.CaseSensitive && 
+                cmd.Aliases.Any(str => str.ToLower().Equals(lowerAlias)))).ToList();
         
         while (commandsToBeRun.Count > 0)
         {
@@ -69,6 +71,7 @@ public class CommandRunner
         type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic)
            .Where(m => m.GetCustomAttribute<CommandAttribute>() != null).Do(marked => {
                CommandAttribute subAttribute = marked.GetCustomAttribute<CommandAttribute>()!;
+               subAttribute.IsSubcommand = true;
                if (marked.IsStatic)
                {
                    subAttribute.Generate(type.Assembly);
@@ -89,6 +92,7 @@ public class CommandRunner
         {
             CommandAttribute? subAttribute = subtype.GetCustomAttribute<CommandAttribute>();
             if (subAttribute == null) return;
+            subAttribute.IsSubcommand = true;
             attribute.Subcommands.Add(subAttribute);
             RegisterType(subtype, subAttribute);
         });

@@ -10,11 +10,11 @@ using HarmonyLib;
 using InnerNet;
 using MonoMod.RuntimeDetour;
 using UnityEngine;
-using VentLib.Extensions;
 using VentLib.Logging;
 using VentLib.RPC.Attributes;
 using VentLib.RPC.Interfaces;
 using VentLib.Utilities;
+using VentLib.Utilities.Extensions;
 
 namespace VentLib.RPC;
 
@@ -114,7 +114,7 @@ public class DetouredSender
         }
 
         if (retries >= 50)
-            throw new TimeoutException("Could not gather client instance");
+            VentLogger.Error("Could not gather client instance", "DelayedSend");
         Send(targets, args);
     }
 

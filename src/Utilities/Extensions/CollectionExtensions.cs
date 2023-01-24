@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace VentLib.Extensions;
+namespace VentLib.Utilities.Extensions;
 
 public static class CollectionExtensions
 {
@@ -18,17 +18,30 @@ public static class CollectionExtensions
         return true;
     }
     
+    public static T GetRandom<T>(this List<T> list) => list[new Random().Next(list.Count)];
+    
     public static T PopRandom<T>(this List<T> list)
     {
         return list.Pop(new Random().Next(list.Count));
     }
-
-    public static T GetRandom<T>(this List<T> list) => list[new Random().Next(list.Count)];
 
     public static T Pop<T>(this List<T> list, int index)
     {
         T value = list[index];
         list.RemoveAt(index);
         return value;
+    }
+
+    public static bool Replace<T>(this List<T> list, T target, T replacement)
+    {
+        int index = list.IndexOf(target);
+        if (index == -1) return false;
+        list[index] = replacement;
+        return true;
+    }
+
+    public static void Swap<T>(this List<T> list, int index1, int index2)
+    {
+        (list[index1], list[index2]) = (list[index2], list[index1]);
     }
 }

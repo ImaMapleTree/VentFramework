@@ -4,10 +4,10 @@ using System.Linq;
 using System.Reflection;
 using Hazel;
 using InnerNet;
-using VentLib.Extensions;
 using VentLib.Logging;
 using VentLib.RPC.Attributes;
 using VentLib.Utilities;
+using VentLib.Utilities.Extensions;
 
 namespace VentLib.RPC;
 

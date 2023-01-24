@@ -13,6 +13,7 @@ internal static class PlayerJoinPatch
 
     internal static void Postfix(AmongUsClient __instance, [HarmonyArgument(0)] ClientData client)
     {
+        if (!AmongUsClient.Instance.AmHost) return;
         VersionControl vc = VersionControl.Instance;
         if (!vc.Handshake) return;
         uint versionCheck = (uint)VentCall.VersionCheck;
