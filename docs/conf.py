@@ -5,7 +5,7 @@ copyright = ''
 
 master_doc = 'index'
 source_suffix = '.rst'
-extensions = ['sphinx_csharp.csharp']
+extensions = ['sphinxsharp.sphinxsharp']
 
 pygments_style = 'sphinx'
 
