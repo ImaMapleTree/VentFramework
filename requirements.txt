@@ -1,1 +1,1 @@
-sphinx-csharp
+sphinxsharp
