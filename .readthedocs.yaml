@@ -2,5 +2,4 @@ version: 2
 
 python:
   install:
-    - method: pip
-      path: sphinx-csharp
+    - requirements: requirements.txt
