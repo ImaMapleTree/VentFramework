@@ -1,2 +1,1 @@
 sphinxsharp-pro
-sphinx-csharp
