@@ -13,13 +13,13 @@ Installing Locally
 
 Make sure these are downloaded and installed in your local directory before continuing.
 
-* **`Among Us <https://www.innersloth.com/games/among-us/>_`** - Base game
-* **`BepInEx <https://github.com/BepInEx/BepInEx>_`** - Required for C# code injection
+* **`Among Us <https://www.innersloth.com/games/among-us/>`_** - Base game
+* **`BepInEx <https://github.com/BepInEx/BepInEx>`_** - Required for C# code injection
 
 To install you'll need to download VentFramework. Mod authors should provide which version of the framework you'll need.
 But versions are usually cross-compatible so if confused try downloading the latest.
 
-**All versions of VentFramework can be found `here <https://www.nuget.org/packages/VentFramework/>_`**
+**All versions of VentFramework can be found `here <https://www.nuget.org/packages/VentFramework/>`_**
 
 Once downloaded you should have a file named something similar to ``ventframework.A.B.C.D.nupkg`` Unzip that file, open it, and navigae to the directory ``lib/net6.0/``
 where you should find the **VentFramework.dll**
