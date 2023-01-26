@@ -7,9 +7,9 @@ master_doc = 'index'
 source_suffix = '.rst'
 extensions = ['sphinxsharp-pro.sphinxsharp']
 
-pygments_style = None
+pygments_style = 'sphinx'
 
-html_theme = 'sphinx_rtdm_theme'
+html_theme = 'default'
 html_theme_path = ["_themes/"]
 
 html_static_path = ['_static']
