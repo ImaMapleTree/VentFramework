@@ -3,7 +3,7 @@ Installation
 
 This page covers two different types of installations.
 If one of your mods requires VentFramework and you need the to install it into your Among Us folder refer to section below. Otherwise,
-if you're trying to use VentFramework as a package reference refer to `Installing as Package Reference <#installing-as-package-reference>_`
+if you're trying to use VentFramework as a package reference refer to :ref:`install-package-ref`
 
 
 Installing Locally
@@ -25,6 +25,8 @@ Once downloaded you should have a file named something similar to ``ventframewor
 where you should find the **VentFramework.dll**
 
 All that's left is to move that file to your Among Us directory, into the ``BepinEx/Plugins`` folder. Once it's there you're good to go!
+
+.. _install-package-ref:
 
 Installing As Package Reference
 ----------------------------------
