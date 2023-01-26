@@ -1,3 +1,5 @@
+.. default-domain:: sphinxsharp
+
 API Reference
 ======================
 The following section outlines the API of VentFramework
