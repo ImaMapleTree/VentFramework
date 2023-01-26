@@ -10,7 +10,7 @@ extensions = ['sphinxsharp-pro.sphinxsharp']
 pygments_style = 'sphinx'
 
 html_theme = 'default'
-html_theme_path = ["_themes/"]
+html_theme_path = ["_themes/sphinx_rtdm_theme/"]
 
 html_static_path = ['_static']
 
