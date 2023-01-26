@@ -12,6 +12,7 @@ pygments_style = 'sphinx'
 html_theme = 'sphinx_rtdm_theme'
 html_theme_path = ["_themes/"]
 
+html_static_path = ['_static']
 
 nitpick_ignore = [
     ('csharp:type', 'void'),
