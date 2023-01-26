@@ -36,4 +36,5 @@ This installation is for if you're a developer and your code relies on VentFrame
 
 Installing is simply a matter of updating your .csproj to include VentFramework as a reference
 .. code-block:: xml
-    <PackageReference Condition="$(Debug) == 'false'" Include="VentFramework" Version="1.0.7.69"/>
+
+    <PackageReference Include="VentFramework" Version="1.0.7.69"/>
