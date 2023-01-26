@@ -22,9 +22,5 @@ Resources for setting up the framework and code examples
 
 API Reference
 --------------
-
-.. toctree::
-    :maxdepth: 1
-    
-    api
-    changelog
+- :doc:`api`
+- :doc:`changelog`
