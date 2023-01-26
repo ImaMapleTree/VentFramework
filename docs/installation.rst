@@ -10,11 +10,12 @@ Installing Locally
 ----------------------
 
 **Prerequisites**
+^^^^^^^^^^^^^^^^^^^^^
 
 Make sure these are downloaded and installed in your local directory before continuing.
 
-* **`Among Us <https://www.innersloth.com/games/among-us/>`_** - Base game
-* **`BepInEx <https://github.com/BepInEx/BepInEx>`_** - Required for C# code injection
+* `Among Us <https://www.innersloth.com/games/among-us/>`_ - Base game
+* `BepInEx <https://github.com/BepInEx/BepInEx/>`_ - Required for C# code injection
 
 To install you'll need to download VentFramework. Mod authors should provide which version of the framework you'll need.
 But versions are usually cross-compatible so if confused try downloading the latest.
