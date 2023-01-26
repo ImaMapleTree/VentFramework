@@ -35,6 +35,7 @@ Installing As Package Reference
 This installation is for if you're a developer and your code relies on VentFramework. 
 
 Installing is simply a matter of updating your .csproj to include VentFramework as a reference
+
 .. code-block:: xml
 
     <PackageReference Include="VentFramework" Version="1.0.7.69"/>
