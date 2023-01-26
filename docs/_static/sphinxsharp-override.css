@@ -1,0 +1,98 @@
+
+
+dl.csharp > dt {
+    border-radius: 10px !important;
+    border: 0px !important;
+    padding: 10px !important;
+}
+dl.csharp > dd p:not([class]) {
+    font-size: 14px;
+    color: rgb(80, 80, 80);
+    margin: 5px 0px 7px 10px !important;
+}
+dl.csharp > dd div p {
+    font-size: 16px !important;
+}
+dl.csharp .docutils.field-list tr.field > th, td {
+    padding: 3px 5px 0px 0px !important;
+}
+
+.csharp .desc > .first {
+    font-size: 14px;
+    margin-right: 18px;
+    color: #404040;
+}
+.csharp .desc > .last {
+    font-size: 13.5px;
+}
+
+.csharp .mod {
+    font-weight: bold;
+    color: #404040;
+}
+
+.csharp.method .desc > .first, .csharp.enum .desc:not(:first-of-type) > .first {
+    background-color: #e7f2fa;
+    padding: 4px;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+.csharp.method .desc > .last, .csharp.enum .desc > .last {
+    font-weight: bold;
+}
+.csharp.method .desc, .csharp.enum .desc {
+    margin-bottom: 5px;
+}
+
+.csharp .unknown {
+    color: #2980B9;
+}
+
+.csharp .class {
+    font-weight: bold;
+    color: #2980B9;
+}
+
+.csharp .struct {
+    font-weight: bold;
+    color: #0a99f8;
+}
+
+.csharp .interface {
+    font-weight: bold;
+    color: #2980B9;
+}
+
+.csharp .enum {
+    font-weight: bold;
+    color: cornflowerblue;
+}
+
+.csharp .text {
+    color: #404040;
+}
+
+.csharp .kw {
+    color: #404040;
+    font-weight: bold;
+}
+
+.csharp .meth-name {
+    color: #404040;
+}
+
+.csharp .delegate {
+    color: #404040;
+}
+
+.csharp .var-name {
+    color: #404040;
+}
+
+.csharp .generic {
+    color: #2980B9;
+}
+
+.csharp .reference.internal:visited{
+    color: unset !important;
+}
