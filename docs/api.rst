@@ -11,8 +11,15 @@ Attributes
 
 .. namespace:: VentFramework.RPC.Attributes
 
-.. type:: public class ModRPCAttribute: System.Attribute
+.. type:: public class ModRPCAttribute: Attribute
 
-    .. method:: public ModRPCAttribute(uint rpc, RpcActors senders = RpcActors.Everyone, RpcActors receivers = RpcActors.Everyone, MethodInvocation invocation = MethodInvocation.ExecuteNever) 
+The ModRPC attribute is the basis for Custom RPCs. This attribute can be put over any method (static or non-static),
+and it'll be automatically picked up by the framework for custom rpc use.
+
+.. method:: public ModRPCAttribute(uint rpc, RpcActors senders, RpcActors receivers, MethodInvocation invocation) 
+    :param(1): The custom and unique rpc-id to send.
+    :param(2): **Default: RpcActors.Everyone** the allowed sender of this RPC. Note: calls to this method from non-allowed senders ONLY blocks the RPC from being sent, based on the :type:`MethodInvocation` parameter, this method still may end up running.
+    :param(3): **Default: RpcActors.Everyone** the allowed receiver of this RPC. This rule is handled by the receiving client and NOT the sending client.
+    :param(4): If and when the code for the method should be run.
 
 Example text with reference on :type:`ModRPCAttribute`.
