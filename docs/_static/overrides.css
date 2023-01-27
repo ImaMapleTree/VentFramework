@@ -31,8 +31,17 @@
     --orange: #f3a683;
 }
 
-.csharp .wy-nav-content {
+.wy-nav-content {
     max-width: 1000px; !important;
+}
+
+.rst-content div[class^='highlight'] {
+    background-color: var(--dark); !important;
+    border-radius: 5px;
+}
+.rst-content div[class^='highlight'] pre {
+    color: var(--white-l3) !important;
+    border: none;
 }
 
 dl.csharp > dt {

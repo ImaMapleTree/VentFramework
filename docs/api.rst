@@ -50,13 +50,13 @@ Interfaces
 .. method:: public T Read(MessageReader reader)
     This method is automatically called when receiving an RPC with T as a declared parameter. The ``MessageReader`` is automatically
     passed in and should be used to retrieve the necessary data in order to construct the object 
-    :params(1): The current message reader to pull data from.
+    :param(1): The current message reader to pull data from.
     :returns: Newly constructed instance of class.
 
 .. method:: public void Write(MessageWriter writer)
     This method is automatically called when sending an RPC that declares the implementing type as a parameter. The ``MessageWriter`` is automatically
     passed, and should be used to write the information needed by :meth:`Read` to re-construct this object
-    :params(1): The message writer, used to write current data about this instance.
+    :param(1): The message writer, used to write current data about this instance.
 
 **Usage**
 
