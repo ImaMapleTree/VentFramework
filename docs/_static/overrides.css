@@ -50,11 +50,11 @@ dl.csharp > dd p:not([class]) {
     color: var(--pink-l1) !important;
 }
 
-.csharp.method .desc > .first, .csharp.enum .desc:not(:first-of-type) > .first {
+.csharp .desc > .first, .csharp.enum .desc:not(:first-of-type) > .first {
     background-color: var(--dark) !important;
     color: var(--white-l1) !important;
 }
-.csharp.method .desc > .last, .csharp.enum .desc > .last {
+.csharp .desc > .last, .csharp.enum .desc > .last {
     color: var(--dark);
 }
 

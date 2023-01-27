@@ -41,7 +41,7 @@ Interfaces
 
 .. namespace:: VentLib.RPC.Interfaces
 
-.. type:: public interface IRpcSendable<T> : IRpcReadable<T>, IRpcWritable where T: IRpcSendable<T>
+.. type:: public interface IRpcSendable<T> : IRpcReadable<T>, IRpcWritable where T: IRpcSendable
 
     When implemented on a type, allows for that type to be transfered and receieved via :type:`ModRPCAttribute` methods.
 
