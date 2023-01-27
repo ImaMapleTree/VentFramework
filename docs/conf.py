@@ -13,6 +13,7 @@ html_theme = 'default'
 html_theme_path = ["_themes", ]
 
 html_static_path = ['_static']
+html_css_files = ["sphinxsharp-override.css"]
 
 nitpick_ignore = [
     ('csharp:type', 'void'),
