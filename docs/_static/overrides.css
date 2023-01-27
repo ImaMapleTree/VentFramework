@@ -1,0 +1,133 @@
+:root {
+    --blue: #007acc;
+    --blue-l1: #528bff;
+    --blue-l2: #61afe3;
+    --blue-l3: #74b9ff;
+    --blue-l4: #778beb;
+    --dark: #35424b;
+    --dark-l1: #21252b;
+    --dark-l2: #2c313a;
+    --dark-l3: #23313a;
+    --dark-l4: #2b3942;
+    --dark-l5: #424855;
+    --gray: #9599a0;
+    --gray-l2: #b0b7c2;
+    --gray-l1: #c5cad3;
+    --gray-l3: #a6acb7;
+    --gray-l4: #8c96a7;
+    --white: #f4f4f5;
+    --white-l1: #ecf0f1;
+    --white-l2: #dbe3e6;
+    --white-l3: #e7eaec;
+    --white-l4: #e3e3ee;
+    --green: #00b894;
+    --green-l1: #98c379;
+    --pink: #c66cac;
+    --pink-l1: #c27eae;
+    --purple: #bc78dd;
+    --red: #e06c60;
+    --red-l1: #ea8685;
+    --yellow: #f5cd79;
+    --orange: #f3a683;
+}
+
+dl.csharp > dt {
+    background-color: var(--dark) !important;
+}
+dl.csharp > dd p:not([class]) {
+    color: var(--dark-l5) !important;
+}
+
+.csharp .desc > .first {
+    color: var(--dark-l5) !important;
+}
+
+.csharp .mod {
+    color: var(--pink-l1) !important;
+}
+
+.csharp.method .desc > .first, .csharp.enum .desc:not(:first-of-type) > .first {
+    background-color: var(--dark) !important;
+    color: var(--white-l1) !important;
+}
+.csharp.method .desc > .last, .csharp.enum .desc > .last {
+    color: var(--dark);
+}
+
+.csharp .unknown {
+    font-weight: normal;
+    color: var(--yellow) !important;
+}
+
+.csharp .class {
+    color: var(--yellow) !important;
+}
+
+.csharp .struct {
+    color: var(--green) !important;
+}
+
+.csharp .interface {
+    color: var(--blue-l4) !important;
+}
+
+.csharp .text {
+    font-weight: normal;
+    color: var(--white-l3) !important;
+}
+
+.csharp .meth-name {
+    font-weight: normal;
+    color: var(--blue-l3) !important;
+}
+
+.csharp .delegate {
+    font-weight: bold;
+    color: var(--blue-l3) !important;
+}
+
+.csharp .var-name {
+    font-weight: normal;
+    color: var(--red-l1) !important;
+}
+
+.csharp .enum {
+    color: var(--blue-l4) !important;
+}
+
+.csharp .kw {
+    font-weight: bold !important;
+    color: var(--pink-l1) !important;
+}
+
+.csharp .generic {
+    color: var(--blue-l1) !important;
+}
+
+.highlight .k, .highlight .kt, .highlight .bp, .highlight .ow {
+    color: var(--pink-l1) !important;
+}
+.highlight .nf, .highlight .nb {
+    color: var(--blue-l3) !important;
+}
+.highlight .p, .highlight .n, .highlight .o, .highlight .gp, .highlight .mh {
+    color: var(--white-l3) !important;
+}
+.highlight .c1, .highlight .s, .highlight .s2, .highlight .go, .highlight .nv {
+    color: var(--gray-l2) !important;
+}
+.highlight .s1, .highlight .sd {
+    color: var(--green-l1) !important;
+}
+.highlight .kc, .highlight .mi, .highlight .mf {
+    color: var(--orange) !important;
+}
+.highlight .nc, .highlight .nn, .highlight .nd, .highlight .na {
+    color: var(--yellow) !important;
+}
+.highlight .nt, .highlight .cp {
+    color: var(--red-l1) !important;
+}
+.highlight .hll {
+    background-color: var(--dark-l5) !important;
+}
