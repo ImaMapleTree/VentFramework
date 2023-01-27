@@ -44,7 +44,9 @@ Interfaces
 
     When implemented on a type, allows for that type to be transfered and receieved via :type:`ModRPCAttribute` methods.
 
-.. variable:: T where T: IRpcSendable<T>
+.. variable:: private T where 
+    
+    T: IRpcSendable<T>
 
 .. end-type::
 
