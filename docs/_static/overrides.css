@@ -1,3 +1,7 @@
+.wy-nav-content {
+    max-width: 1000px; !important;
+}
+
 :root {
     --blue: #007acc;
     --blue-l1: #528bff;
