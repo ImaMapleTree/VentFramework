@@ -31,6 +31,8 @@ The following parameters are supported by ModRPC:
     :param(3): **Default: RpcActors.Everyone** the allowed receiver of this RPC. This rule is handled by the receiving client and NOT the sending client.
     :param(4): If and when the code for the method should be run.
 
+.. _rpcactors:
+
 .. enum:: public enum RpcActors
     :values: None Host NonHost LastSender Everyone
     :val(1): Ignores sending / receiving of RPC
@@ -59,7 +61,7 @@ The following parameters are supported by ModRPC:
     }
 
     // Allows only host to send a message, and allows for only non-hosts to receive the message
-    [ModRPC((uint)MyRPCs.HostSendMsg), senders: RpcActors.Host, receivers: RpcActors.NonHost]
+    [ModRPC((uint)MyRPCs.HostSendMsg, senders: RpcActors.Host, receivers: RpcActors.NonHost]
     public void HostMessage(string message) {
         VentLogger.Info($"I am not the host and I received this: \"{message}\" message.);
     }
@@ -114,6 +116,46 @@ Interfaces
     }
     
     
+Utilities
+^^^^^^^^^^^^^^
+
+.. namespace:: VentLib.RPC
+
+.. type:: public class ModRPC
+    
+    The object representation for a method marked with ModRPC. Allows for single-use and targeted invocation of the related ModRPCAttribute method.
+
+.. method:: public void Send(int[]? clientIds, params object[] args)
+    :param(1): An array of clientIds to specifically target with an RPC or null to target all clients
+    :param(2): A variable number of arguments which matches the targeted method's signature.
+
+    Sends a Custom RPC to the targeted client(s) with the passed in arguments.
+
+.. method:: InvokeTrampoline(object[] args)
+    :param(1): An array of objects representing the arguments of the original targeted method.
+    
+    Invokes the original, underlying, method with the given parameters without sending any Custom RPC.
+
+.. end-type::
+
+**Usage**
+
+.. code-block:: csharp
+    
+    [ModRPC(0)]
+    public void MyMethod(int a) {
+        // Do something
+    }
+
+    public void ManualSendAndInvoke() {
+        ModRPC myMethodModRPC; // Acquired usually through Vents.Find()
+        // Below assumes myMethodModRPC is a valid object and not null.
+        myMethodModRPC.Send(new int[] { 1 }, 3); // Sends Custom RPC 0 (defined by MyMethod) to client with the ID of 1
+        
+        myMethodModRPC.InvokeTrampoline(new object[] { 1 }); // Invokes "MyMethod(1)"
+    }
+
+.. seealso:: Refer to Vents.FindRPC() for acquiring a ModRPC instance
 
 
-Example text with reference on :type:`RpcActors`.
+Example text with reference on :ref:`rpcactors`.
