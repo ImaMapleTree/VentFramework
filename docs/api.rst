@@ -41,17 +41,21 @@ Interfaces
 
 .. namespace:: VentLib.RPC.Interfaces
 
-.. note:: When declaring this interface on an abstract class it is required to register that class via the :type:`AbstractConstructors` class.
+.. note:: You must declare a default, no-parameters constructor in implementing classes. Additionally, when declaring this interface on an abstract class it is required to register that class via the :type:`AbstractConstructors` class.
 
 .. type:: public interface IRpcSendable<T>
 
     When implemented on a type, allows for that type to be transfered and receieved via :type:`ModRPCAttribute` methods.
 
 .. method:: public T Read(MessageReader reader)
+    This method is automatically called when receiving an RPC with T as a declared parameter. The ``MessageReader`` is automatically
+    passed in and should be used to retrieve the necessary data in order to construct the object
     :param(1): The current message reader to pull data from.
     :returns: Newly constructed instance of class.
 
 .. method:: public void Write(MessageWriter writer)
+    This method is automatically called when sending an RPC that declares the implementing type as a parameter. The ``MessageWriter`` is automatically
+    passed, and should be used to write the information needed by :meth:`Read` to re-construct this object
     :param(1): The message writer, used to write current data about this instance.
 
 .. end-type::
@@ -70,11 +74,11 @@ Interfaces
         }
         
         public MyObject Read(MessageReader reader) {
-            return new MyObject(reader.ReadInt32());
+            return new MyObject(reader.ReadInt32()); // read integer value from reader and construct new object from it
         }
 
         public void Write(MessageWriter writer) {
-            write.Write(this.a);
+            write.Write(this.a); // write this object's value to the message writer
         }
     }
 
