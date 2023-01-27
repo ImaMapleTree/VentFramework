@@ -41,9 +41,45 @@ Interfaces
 
 .. namespace:: VentLib.RPC.Interfaces
 
-.. type:: public interface IRpcSendable<T> : IRpcReadable<T>, IRpcWritable where T: IRpcSendable
+.. note:: When declaring this interface on an abstract class it is required to register that class via the :type:`AbstractConstructors` class.
+
+.. type:: public interface IRpcSendable<T>
 
     When implemented on a type, allows for that type to be transfered and receieved via :type:`ModRPCAttribute` methods.
+
+.. method:: public T Read(MessageReader reader)
+    This method is automatically called when receiving an RPC with T as a declared parameter. The ``MessageReader`` is automatically
+    passed in and should be used to retrieve the necessary data in order to construct the object 
+    :params(1): The current message reader to pull data from.
+    :returns: Newly constructed instance of class.
+
+.. method:: public void Write(MessageWriter writer)
+    This method is automatically called when sending an RPC that declares the implementing type as a parameter. The ``MessageWriter`` is automatically
+    passed, and should be used to write the information needed by :meth:`Read` to re-construct this object
+    :params(1): The message writer, used to write current data about this instance.
+
+**Usage**
+
+.. code-block:: csharp
+    
+    public class MyObject : IRpcSendable<MyObject> {
+        public int a;
+        
+        public MyObject(int a) {
+            this.a = a;
+        }
+        
+        public MyObject Read(MessageReader reader) {
+            return new MyObject(reader.ReadInt32());
+        }
+
+        public void Write(MessageWriter writer) {
+            write.Write(this.a);
+        }
+    }
+
+
+
 
 Enums
 ^^^^^^^^^^^^^^^^

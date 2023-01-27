@@ -1,7 +1,3 @@
-.wy-nav-content {
-    max-width: 1000px; !important;
-}
-
 :root {
     --blue: #007acc;
     --blue-l1: #528bff;
@@ -33,6 +29,10 @@
     --red-l1: #ea8685;
     --yellow: #f5cd79;
     --orange: #f3a683;
+}
+
+.csharp .wy-nav-content {
+    max-width: 1000px; !important;
 }
 
 dl.csharp > dt {
