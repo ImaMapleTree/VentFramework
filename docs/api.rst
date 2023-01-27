@@ -31,7 +31,7 @@ The following parameters are supported by ModRPC:
     :param(3): **Default: RpcActors.Everyone** the allowed receiver of this RPC. This rule is handled by the receiving client and NOT the sending client.
     :param(4): If and when the code for the method should be run.
 
-.. type:: public enum RpcActors : byte
+.. type:: public enum RpcActors
     :values: None Host NonHost LastSender Everyone
     :val(1): Ignores sending / receiving of RPC
     :val(2): Only allows host to send / receive RPC
@@ -45,7 +45,7 @@ The following parameters are supported by ModRPC:
 
 **Usage**
 
-..code-block csharp::
+.. code-block csharp::
     
     public enum MyRPCs {
         PublicSendMsg,
