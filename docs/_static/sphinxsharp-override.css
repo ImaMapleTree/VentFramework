@@ -55,6 +55,10 @@ dl.csharp > dd p:not([class]) {
     color: var(--pink-l1) !important;
 }
 
+.csharp .mod {
+    color: #C27EAEFF !important;
+}
+
 .csharp.method .desc > .first, .csharp.enum .desc:not(:first-of-type) > .first {
     background-color: var(--dark) !important;
     color: var(--white-l1) !important;
