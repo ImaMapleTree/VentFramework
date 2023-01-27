@@ -10,7 +10,7 @@ extensions = ['sphinxsharp-pro.sphinxsharp']
 pygments_style = 'sphinx'
 
 html_static_path = ['_static']
-html_css_files = ["sphinxsharp-override.css", "overrides.css"]
+html_css_files = ["sphinxsharp-override.css", "rtdissosilly.css"]
 
 nitpick_ignore = [
     ('csharp:type', 'void'),
