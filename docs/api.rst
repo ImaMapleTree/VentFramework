@@ -11,6 +11,6 @@ Attributes
 
 .. namespace:: VentFramework.RPC.Attributes
 
-.. type:: public class ModRPCAttribute: Attribute
+.. type:: public class ModRPCAttribute: `Attribute <https://google.com/>` _
 
 Example text with reference on :type:`ModRPCAttribute`.
