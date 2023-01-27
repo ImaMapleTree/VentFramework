@@ -60,7 +60,7 @@ dl.csharp > dd p:not([class]) {
 }
 
 .csharp .desc > .first, .csharp.enum .desc:not(:first-of-type) > .first {
-    border-radius: 15px;
+    border-radius: 5px;
     padding: 4px;
     margin-right: 10px;
     background-color: var(--dark) !important;

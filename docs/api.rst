@@ -31,10 +31,40 @@ The following parameters are supported by ModRPC:
     :param(3): **Default: RpcActors.Everyone** the allowed receiver of this RPC. This rule is handled by the receiving client and NOT the sending client.
     :param(4): If and when the code for the method should be run.
 
-.. method:: public void Test(string s)
-    :param(1): String string
+.. type:: public enum RpcActors : byte
+    :values: None Host NonHost LastSender Everyone
+    :val(1): Ignores sending / receiving of RPC
+    :val(2): Only allows host to send / receive RPC
+    :val(3): Allows any non-host to send / receive RPC
+    :val(4): Receiver only! Special value which allows for senders to "respond" back to the last client that sent the specific RPC
+    :val(5): Allows any caller to send / receive RPC
 
-    Testing this method
+    Used in ModRPC attribute to specify allowed senders / receivers of RPC
+
+.. end-type::
+
+**Usage**
+
+..code-block csharp::
+    
+    public enum MyRPCs {
+        PublicSendMsg,
+        HostSendMsg
+    }
+
+    // Sends / receives a message
+    [ModRPC((uint)MyRPCs.PublicSendMessage)]
+    public void AnyoneSendMessage(string message) {
+        VentLogger.Info($"Message Received: {message}");
+    }
+
+    // Allows only host to send a message, and allows for only non-hosts to receive the message
+    [ModRPC((uint)MyRPCs.HostSendMsg), senders: RpcActors.Host, receivers: RpcActors.NonHost]
+    public void HostMessage(string message) {
+        VentLogger.Info($"I am not the host and I received this: \"{message}\" message.);
+    }
+
+
 
 Interfaces
 ^^^^^^^^^^^^^^^^^
@@ -43,22 +73,23 @@ Interfaces
 
 .. note:: You must declare a default, no-parameters constructor in implementing classes. Additionally, when declaring this interface on an abstract class it is required to register that class via the :type:`AbstractConstructors` class.
 
-.. type:: public interface IRpcSendable<T>
+.. type:: public interface IRpcSendable<T> : IRpcReadable<T>, IRpcWritable
 
     When implemented on a type, allows for that type to be transfered and receieved via :type:`ModRPCAttribute` methods.
 
 .. method:: public T Read(MessageReader reader)
-
-    This method is automatically called when receiving an RPC with T as a declared parameter. The ``MessageReader`` is automatically
-    passed in and should be used to retrieve the necessary data in order to construct the object
     :param(1): The current message reader to pull data from.
     :returns: Newly constructed instance of class.
 
+    This method is automatically called when receiving an RPC with T as a declared parameter. The ``MessageReader`` is automatically
+    passed in and should be used to retrieve the necessary data in order to construct the object
+    
+
 .. method:: public void Write(MessageWriter writer)
+    :param(1): The message writer, used to write current data about this instance.
 
     This method is automatically called when sending an RPC that declares the implementing type as a parameter. The ``MessageWriter`` is automatically
     passed, and should be used to write the information needed by :meth:`Read` to re-construct this object
-    :param(1): The message writer, used to write current data about this instance.
 
 .. end-type::
 
@@ -83,14 +114,8 @@ Interfaces
             write.Write(this.a); // write this object's value to the message writer
         }
     }
+    
+    
 
 
-
-
-Enums
-^^^^^^^^^^^^^^^^
-
-.. type:: public enum 
-
-
-Example text with reference on :type:`ModRPCAttribute`.
+Example text with reference on :type:`RpcActors`.
