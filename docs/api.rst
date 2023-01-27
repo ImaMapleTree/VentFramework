@@ -125,7 +125,7 @@ Utilities
     
     The object representation for a method marked with ModRPC. Allows for single-use and targeted invocation of the related ModRPCAttribute method.
 
-.. method:: public void Send(int[]? clientIds, params object[] args)
+.. method:: public void Send(int[] clientIds, params object[] args)
     :param(1): An array of clientIds to specifically target with an RPC or null to target all clients
     :param(2): A variable number of arguments which matches the targeted method's signature.
 
