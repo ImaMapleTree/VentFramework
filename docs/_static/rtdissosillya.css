@@ -61,11 +61,21 @@ dl.csharp > dd p:not([class]) {
 
 .csharp .desc > .first, .csharp.enum .desc:not(:first-of-type) > .first {
     border-radius: 5px;
-    padding: 4px;
+    padding: 6px;
     margin-right: 10px;
     background-color: var(--dark) !important;
     color: var(--white-l1) !important;
 }
+
+.csharp .headerlink {
+    width: 0;
+    height: 0;
+    max-width: 0;
+    max-height: 0;
+    max-font-size: 0;
+    font-size: 0;
+}
+
 .csharp .desc > .last, .csharp.enum .desc > .last {
     color: var(--dark);
 }

@@ -33,35 +33,7 @@ public static class Vents
     internal static readonly Dictionary<Assembly, string> AssemblyNames = new();
     internal static readonly Dictionary<Assembly, int[]?> BlockedReceivers = new();
     internal static readonly Dictionary<uint, PlayerControl> LastSenders = new();
-
-    public static int[]? CallingAssemblyBlacklist() => BlockedReceivers.GetValueOrDefault(Assembly.GetCallingAssembly());
-
-    public static VentControlFlag CallingAssemblyFlag(Assembly? assembly = null)
-    {
-        if (!RegisteredAssemblies.TryGetValue(assembly ?? Assembly.GetCallingAssembly(), out VentControlFlag flag))
-            flag = VentControlFlag.AllowedReceiver | VentControlFlag.AllowedSender;
-        return flag;
-    }
-
-    public static void BlockClient(Assembly assembly, int clientId)
-    {
-        int[] newBlockedArray = BlockedReceivers.TryGetValue(assembly, out int[]? blockedClients)
-            ? blockedClients.AddToArray(clientId)
-            : new[] { clientId };
-        BlockedReceivers[assembly] = newBlockedArray;
-    }
-
-    internal static void SetControlFlag(Assembly assembly, VentControlFlag flag)
-    {
-        // Assemblies must be registered first before they can be updated
-        if (!RegisteredAssemblies.ContainsKey(assembly)) return;
-        RegisteredAssemblies[assembly] = flag;
-    }
-
-    public static void SetAssemblyRefName(Assembly assembly, string name)
-    {
-        AssemblyNames[assembly] = name;
-    }
+    private static bool _initialized;
 
     public static ModRPC? FindRPC(uint callId, MethodInfo? targetMethod = null)
     {
@@ -105,14 +77,41 @@ public static class Vents
         }
     }
 
-    public static void Initialize(bool patch = true)
+    public static void Initialize()
     {
-        rootAssemby = Assembly.GetCallingAssembly();
+        if (_initialized) return;
+        
         var _ = Async.AUCWrapper;
+        rootAssemby = Assembly.GetCallingAssembly();
         Localizer.Initialize();
         IL2CPPChainloader.Instance.PluginLoad += (_, assembly, _) => Register(assembly, assembly == rootAssemby);
         Register(Assembly.GetExecutingAssembly());
-        if (patch) Harmony.PatchAll(Assembly.GetExecutingAssembly());
+        Harmony.PatchAll(Assembly.GetExecutingAssembly());
+        _initialized = true;
+    }
+    
+    public static void BlockClient(Assembly assembly, int clientId)
+    {
+        int[] newBlockedArray = BlockedReceivers.TryGetValue(assembly, out int[]? blockedClients)
+            ? blockedClients.AddToArray(clientId)
+            : new[] { clientId };
+        BlockedReceivers[assembly] = newBlockedArray;
+    }
+    
+    internal static int[]? CallingAssemblyBlacklist() => BlockedReceivers.GetValueOrDefault(Assembly.GetCallingAssembly());
+
+    internal static VentControlFlag CallingAssemblyFlag(Assembly? assembly = null)
+    {
+        if (!RegisteredAssemblies.TryGetValue(assembly ?? Assembly.GetCallingAssembly(), out VentControlFlag flag))
+            flag = VentControlFlag.AllowedReceiver | VentControlFlag.AllowedSender;
+        return flag;
+    }
+
+    internal static void SetControlFlag(Assembly assembly, VentControlFlag flag)
+    {
+        // Assemblies must be registered first before they can be updated
+        if (!RegisteredAssemblies.ContainsKey(assembly)) return;
+        RegisteredAssemblies[assembly] = flag;
     }
 }
 

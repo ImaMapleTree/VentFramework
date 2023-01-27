@@ -131,7 +131,7 @@ Utilities
 
     Sends a Custom RPC to the targeted client(s) with the passed in arguments.
 
-.. method:: InvokeTrampoline(object[] args)
+.. method:: public void InvokeTrampoline(object[] args)
     :param(1): An array of objects representing the arguments of the original targeted method.
     
     Invokes the original, underlying, method with the given parameters without sending any Custom RPC.
@@ -158,4 +158,68 @@ Utilities
 .. seealso:: Refer to Vents.FindRPC() for acquiring a ModRPC instance
 
 
-Example text with reference on :ref:`rpcactors`.
+Example text with reference on `RpcActors <#enum-VentLib.RPC.Attributes.ModRPCAttribute.RpcActors>` _.
+
+Vents
+---------------------------
+
+The main class for VentFramework which contains a couple utility methods, initialization methods,
+and contains management instances for other modules.
+
+.. type:: public static class Vents
+
+.. variable:: public static readonly uint[] BuiltinRPCs
+    
+    An array of internal RPC ids used by VentFramework. These ids cannot be used with ModRPCAttribute and require the special VentRPCAttribute instead.
+
+.. variable:: public static VersionControl VersionControl
+
+    Provides an instance of the VersionControl class used for Client2Host handshakes and general versioning
+
+.. variable:: public static CommandRunner CommandRunner
+
+    Provides and instance of the CommandRunner class used for intercepting chat commands 
+
+.. important:: All assemblies that utilize VentFramework should call Vents.Initialize() at least once!
+
+.. method:: public void Initialize()
+
+    Initializes VentFramework
+
+.. method:: public void Register(Assembly assembly, bool localize = true)
+    :param(1): The assembly to register with VentLib
+    :param(2): If the assembly should be localized
+
+    This method should be automatically called on all assemblies, but is provided for edge cases where it isn't.
+
+.. method:: public ModRPC FindRPC(uint callerId, MethodInfo targetMethod = null)
+    :returns: The first matching ModRPC or null if no such ModRPC exists
+    :param(1): The unique RPC id to search for
+    :param(2): If provided, grabs the ModRPC associated with specific method, assuming that method also corresponds to the callerId.
+
+    Finds the first ModRPC associated with a unique RPC id, or the speciifc ModRPC linked with the target method, if specified.
+
+**Usage:**
+    
+.. code-block:: csharp
+
+    ModRPC rpc = Vents.FindRPC((uint)RPCs.ExampleRPC);
+
+.. method:: public PlayerControl GetLastSender(uint callerId)
+    :returns: The last sender of the specified RPC or null if there hasn't been a sender
+    :param(1): The unique RPC id
+    
+    Gets the last sender of a specified RPC
+
+**Usage:**
+
+.. code-block:: csharp
+    
+    PlayerControl myPlayer = Vents.GetLastSender((uint)RPCs.ExampleRPC);
+
+.. method:: public void BlockClient(Assembly assembly, int clientId)
+    :param(1): The assembly to block RPC reception from
+    :param(2): The specific client to block
+
+    Blocks reception of RPCs from a speciifc client for all ModRPCs in a specified assembly
+    

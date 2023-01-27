@@ -45,6 +45,11 @@ public static class VentLogger
         public static LogOutput Output { get; private set; } = LogOutput.ConsoleOut;
         public static bool ShowSourceName { get; private set; } = true;
 
+        public static void SetAssemblyRefName(Assembly assembly, string name)
+        {
+            Vents.AssemblyNames[assembly] = name;
+        }
+        
         public static void SetLevel(LogLevel level)
         {
             AllowedLevel = level;
