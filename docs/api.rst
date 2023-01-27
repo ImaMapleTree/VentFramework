@@ -31,7 +31,8 @@ The following parameters are supported by ModRPC:
     :param(3): **Default: RpcActors.Everyone** the allowed receiver of this RPC. This rule is handled by the receiving client and NOT the sending client.
     :param(4): If and when the code for the method should be run.
 
-.. method:: public void Test()
+.. method:: public void Test(string s)
+    :param(1): String string
 
     Testing this method
 
@@ -40,16 +41,9 @@ Interfaces
 
 .. namespace:: VentLib.RPC.Interfaces
 
-.. type:: public interface IRpcSendable<T> : IRpcReadable<T>, IRpcWritable
+.. type:: public interface IRpcSendable<T> : IRpcReadable<T>, IRpcWritable where T: IRpcSendable<T>
 
     When implemented on a type, allows for that type to be transfered and receieved via :type:`ModRPCAttribute` methods.
-
-.. variable:: private T where 
-    
-    T: IRpcSendable<T>
-
-.. end-type::
-
 
 Enums
 ^^^^^^^^^^^^^^^^
