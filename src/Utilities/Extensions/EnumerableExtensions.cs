@@ -34,4 +34,19 @@ public static class EnumerableExtensions
     {
         return source.Select(selector).Where(predicate);
     }
+    
+    /// <summary>
+    /// Filters a sequence, then maps all remaining elements into a new type.
+    /// </summary>
+    /// <param name="source">A sequence of values to invoke a transform function on and filter.</param>
+    /// <param name="selector">A transform function to apply to each element.</param>
+    /// <param name="predicate">A function to test each transformed element for a condition.</param>
+    /// <typeparam name="TSource">The type of the elements of source.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by selector.</typeparam>
+    /// <returns>An <see cref="IEnumerable{T}"/> whose elements are the result of invoking the transform function on each element of source, then filtering elements with the predicate.</returns>
+    /// <exception cref="ArgumentNullException">source or selector is null</exception>
+    public static IEnumerable<TResult?> SelectWhere<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult?> selector, Func<TSource, bool> predicate)
+    {
+        return source.Where(predicate).Select(selector);
+    }
 }

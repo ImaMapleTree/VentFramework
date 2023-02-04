@@ -41,7 +41,7 @@ public class VersionCheck
         switch (action)
         {
             case HandshakeResult.DisableRPC:
-                Vents.BlockClient(Vents.rootAssemby, player.GetClientId());
+                Vents.BlockClient(Vents.RootAssemby, player.GetClientId());
                 break;
             case HandshakeResult.Kick:
                 AmongUsClient.Instance.KickPlayer(player.GetClientId(), false);

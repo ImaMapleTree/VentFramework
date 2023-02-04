@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
 namespace VentLib.Utilities;
 
-public class AssemblyUtils
+public static class AssemblyUtils
 {
     public static Assembly? FindAssemblyFromFullName(string? fullName)
     {
@@ -14,5 +15,10 @@ public class AssemblyUtils
     public static Assembly? FindAssemblyFromSimpleName(string? simpleName)
     {
         return AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(assembly => assembly.GetName().Name == simpleName);
+    }
+
+    internal static string GetAssemblyRefName(Assembly assembly)
+    {
+        return assembly == Vents.RootAssemby ? "root" : Vents.AssemblyNames.GetValueOrDefault(assembly, assembly.GetName().Name!);
     }
 }

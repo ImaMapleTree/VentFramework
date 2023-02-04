@@ -126,8 +126,8 @@ public static class Localizer
 
     internal static void Load(Assembly assembly)
     {
-        string assemblyName = assembly == Vents.rootAssemby ? "root" : assembly.GetName().Name!;
-        if (assembly == Vents.rootAssemby)
+        string assemblyName = assembly == Vents.RootAssemby ? "root" : assembly.GetName().Name!;
+        if (assembly == Vents.RootAssemby)
             _root =  assembly.GetName().Name!;
         VentLogger.Info($"Loading Translations for {assemblyName}");
         if (!_loader.SupportedLanguages.ContainsKey(assemblyName) && assemblyName != "root")

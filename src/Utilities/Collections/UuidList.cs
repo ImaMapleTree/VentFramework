@@ -1,0 +1,83 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace VentLib.Utilities.Collections;
+
+public class UuidList<T>: IEnumerable<T>
+{
+    private List<PhantomEntry> items = new();
+    public IEnumerator<T> GetEnumerator() => items.Select(pe => pe.Value).GetEnumerator();
+    private uint id;
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    
+    public uint Add(T item)
+    {
+        uint uuid = id;
+        items.Add(new PhantomEntry(id++, item));
+        return uuid;
+    }
+
+    public void Clear()
+    {
+        items.Clear();
+        id = 0;
+    }
+
+    public bool Contains(T item) => this.Any(i => Equals(item, i));
+
+    public void CopyTo(T[] array, int arrayIndex)
+    {
+        Array.Copy(this.ToArray(), 0, array, arrayIndex, items.Count);
+    }
+
+    public bool Remove(T item)
+    {
+        PhantomEntry entry = items.FirstOrDefault(pe => Equals(item, pe.Value));
+        return entry.ID != uint.MaxValue && items.Remove(entry);
+    }
+
+    public bool Remove(uint uuid)
+    {
+        PhantomEntry entry = items.FirstOrDefault(pe => pe.ID == uuid);
+        return entry.ID != uint.MaxValue && items.Remove(entry);
+    }
+
+    public int Count => items.Count;
+
+    public bool IsReadOnly => false;
+
+    public T? Get(uint uuid)
+    {
+        PhantomEntry entry = items.FirstOrDefault(pe => pe.ID == uuid);
+        return entry.ID == uint.MaxValue ? default : entry.Value;
+    }
+
+    public int IndexOf(T item) => items.FindIndex(pe => Equals(pe.Value, item));
+
+    public int IndexOf(uint uuid) => items.FindIndex(pe => pe.ID == uuid);
+    
+    public void Insert(int index, T item) => items.Insert(index, new PhantomEntry(id++, item));
+
+    public void RemoveAt(int index) => items.RemoveAt(index);
+
+    public T this[int index]
+    {
+        get => items[index].Value;
+        set => items[index] = new PhantomEntry(id++, value);
+    }
+
+    private struct PhantomEntry
+    {
+        public readonly uint ID = uint.MaxValue;
+        public readonly T Value;
+        
+        public PhantomEntry(uint id, T value)
+        {
+            ID = id;
+            Value = value;
+        }
+    }
+}

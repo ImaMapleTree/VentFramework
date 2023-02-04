@@ -32,7 +32,7 @@ public class GitVersion: Version
     
     public GitVersion(RlAssembly? targetAssembly = null)
     {
-        targetAssembly ??= Vents.rootAssemby;
+        targetAssembly ??= Vents.RootAssemby;
         _thisAssembly ??= AppDomain.CurrentDomain.GetAssemblies()
            .Where(assembly => targetAssembly == null || assembly.FullName == targetAssembly.FullName)
            .SelectMany(assembly =>

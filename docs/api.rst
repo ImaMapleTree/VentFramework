@@ -168,6 +168,9 @@ and contains management instances for other modules.
 
 .. type:: public static class Vents
 
+Variables
+^^^^^^^^^^^^^^^^^^^^^
+
 .. variable:: public static readonly uint[] BuiltinRPCs
     
     An array of internal RPC ids used by VentFramework. These ids cannot be used with ModRPCAttribute and require the special VentRPCAttribute instead.
@@ -179,6 +182,9 @@ and contains management instances for other modules.
 .. variable:: public static CommandRunner CommandRunner
 
     Provides and instance of the CommandRunner class used for intercepting chat commands 
+
+Methods
+^^^^^^^^^^^^^^^^^^^^^^^
 
 .. important:: All assemblies that utilize VentFramework should call Vents.Initialize() at least once!
 

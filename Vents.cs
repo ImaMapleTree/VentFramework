@@ -8,6 +8,7 @@ using HarmonyLib;
 using VentLib.Commands;
 using VentLib.Localization;
 using VentLib.Logging;
+using VentLib.Options;
 using VentLib.RPC;
 using VentLib.RPC.Attributes;
 using VentLib.RPC.Interfaces;
@@ -15,7 +16,6 @@ using VentLib.Utilities;
 using VentLib.Version;
 
 namespace VentLib;
-
 
 //if the client has an unsupported addon it's rpcs get disabled completely CHECK!
 //if the client is missing an addon then the host's rpcs from that addon to that client get disabled
@@ -26,7 +26,7 @@ public static class Vents
     public static VersionControl VersionControl = new();
     public static CommandRunner CommandRunner = new();
     
-    internal static Assembly rootAssemby = null!;
+    internal static Assembly RootAssemby = null!;
     internal static Harmony Harmony = new("me.tealeaf.VentLib");
     internal static readonly Dictionary<uint, List<ModRPC>> RpcBindings = new();
     internal static readonly Dictionary<Assembly, VentControlFlag> RegisteredAssemblies = new();
@@ -58,6 +58,7 @@ public static class Vents
         if (localize)
             Localizer.Load(assembly);
         
+        OptionManager.Load(assembly);
         CommandRunner.Register(assembly);
 
         var methods = assembly.GetTypes()
@@ -82,10 +83,11 @@ public static class Vents
         if (_initialized) return;
         
         var _ = Async.AUCWrapper;
-        rootAssemby = Assembly.GetCallingAssembly();
+        RootAssemby = Assembly.GetCallingAssembly();
         Localizer.Initialize();
-        IL2CPPChainloader.Instance.PluginLoad += (_, assembly, _) => Register(assembly, assembly == rootAssemby);
+        IL2CPPChainloader.Instance.PluginLoad += (_, assembly, _) => Register(assembly, assembly == RootAssemby);
         Register(Assembly.GetExecutingAssembly());
+        VentLogger.Fatal("Patching All");
         Harmony.PatchAll(Assembly.GetExecutingAssembly());
         _initialized = true;
     }
