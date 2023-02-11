@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace VentLib.Commands;
 
@@ -8,6 +9,8 @@ public struct CommandContext
     public string? Group;
     public string Alias;
     public string[] Args;
+    public bool Errored;
+    public List<int> ErroredParameters;
 
     internal PlayerControl Source;
     
@@ -18,6 +21,8 @@ public struct CommandContext
         Alias = split[0];
         Args = split.Length > 1 ? split[1..] : Array.Empty<string>();
         Group = null;
+        Errored = false;
+        ErroredParameters = new List<int>();
         Source = source;
     }
 
@@ -29,6 +34,8 @@ public struct CommandContext
             Group = Alias,
             Alias = Args.Length > 0 ? Args[0] : null!,
             Args = Args.Length > 1  ? Args[1..] : Array.Empty<string>(),
+            Errored = false,
+            ErroredParameters = new List<int>(),
             Source = Source
         };
     }

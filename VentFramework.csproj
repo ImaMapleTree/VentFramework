@@ -2,7 +2,7 @@
     <PropertyGroup>
         <Title>VentFramework</Title>
         <Description>A modding framework for the popular social deduction game Among Us </Description>
-        <Version>1.1.0.0</Version>
+        <Version>1.1.0.58</Version>
         <RootNamespace>VentLib</RootNamespace>
         <TargetFramework>net6.0</TargetFramework>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>

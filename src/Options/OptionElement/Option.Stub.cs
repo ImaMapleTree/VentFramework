@@ -1,6 +1,6 @@
 using VentLib.Utilities.Extensions;
 
-namespace VentLib.Options;
+namespace VentLib.Options.OptionElement;
 
 public partial class Option
 {

@@ -11,5 +11,10 @@ public static class FileExtensions
         
         file.Create().Close();
         return "";
-    } 
+    }
+
+    public static FileInfo GetFile(this DirectoryInfo directory, string path)
+    {
+        return new FileInfo(Path.Join(directory.FullName, path));
+    }
 }

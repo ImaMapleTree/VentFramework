@@ -1,3 +1,5 @@
+using VentLib.Options.OptionElement;
+
 namespace VentLib.Options;
 
 public struct OptionChangeEvent

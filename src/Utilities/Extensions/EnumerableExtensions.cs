@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HarmonyLib;
 
 namespace VentLib.Utilities.Extensions;
 
@@ -48,5 +49,90 @@ public static class EnumerableExtensions
     public static IEnumerable<TResult?> SelectWhere<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult?> selector, Func<TSource, bool> predicate)
     {
         return source.Where(predicate).Select(selector);
+    }
+
+    /// <summary>
+    /// Wraps element of this sequence in a new struct which contains the item and its index.
+    /// This is a shortcut to LINQ Select.
+    /// </summary>
+    /// <param name="source">An ordered sequence of values.</param>
+    /// <typeparam name="TSource">The type of elements of the source.</typeparam>
+    /// <returns>A new sequence with a new struct representing each elements index and reference</returns>
+    /// <exception cref="ArgumentNullException">source is null</exception>
+    public static IEnumerable<(int index, TSource item)> Indexed<TSource>(this IEnumerable<TSource> source)
+    {
+        int i = 0;
+        return source.Select(val => (i++, val));
+    }
+
+    /// <summary>
+    /// Maps all elements of this sequence into a new dictionary via the provided key and value mapper functions.
+    /// </summary>
+    /// <param name="source">A sequence of values to put into a Dictionary.</param>
+    /// <param name="keyMapper">Function to map element into its respective dictionary key.</param>
+    /// <param name="valueMapper">Function to map element into its respective dictionary value.</param>
+    /// <typeparam name="TSource">The type of elements of the source.</typeparam>
+    /// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
+    /// <typeparam name="TValue">The type of values in the dictionary.</typeparam>
+    /// <returns>A new <see cref="Dictionary{T,T}"/> containing mapped elements from the sequence.</returns>
+    /// <exception cref="ArgumentNullException">source or mapper functions are null.</exception>
+    public static Dictionary<TKey, TValue> ToDict<TSource, TKey, TValue>(this IEnumerable<TSource> source, Func<TSource, TKey> keyMapper, Func<TSource, TValue> valueMapper) where TKey: notnull
+    {
+        if (source == null) throw new ArgumentNullException(nameof(source));
+        Dictionary<TKey, TValue> dictionary = new();
+        source.Do(item => dictionary[keyMapper(item)] = valueMapper(item));
+        return dictionary;
+    }
+    
+    /// <summary>
+    /// Maps all elements of this sequence into a new dictionary via the provided key and value mapper functions.
+    /// </summary>
+    /// <param name="source">A sequence of values to put into a Dictionary.</param>
+    /// <param name="keyMapper">Function to map element into its respective dictionary key.</param>
+    /// <param name="valueMapper">Function to map element into its respective dictionary value.</param>
+    /// <typeparam name="TSource">The type of elements of the source.</typeparam>
+    /// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
+    /// <typeparam name="TValue">The type of values in the dictionary.</typeparam>
+    /// <returns>A new <see cref="Dictionary{T,T}"/> containing mapped elements from the sequence.</returns>
+    /// <exception cref="ArgumentNullException">source or mapper functions are null.</exception>
+    public static Dictionary<TKey, TValue> ToDict<TSource, TKey, TValue>(this IEnumerable<TSource> source, Func<TSource, int, TKey> keyMapper, Func<TSource, int, TValue> valueMapper) where TKey: notnull
+    {
+        if (source == null) throw new ArgumentNullException(nameof(source));
+        Dictionary<TKey, TValue> dictionary = new();
+        source.ForEach((item, i) => dictionary[keyMapper(item, i)] = valueMapper(item, i));
+        return dictionary;
+    }
+    
+    /// <summary>
+    /// Executes an action for each element in this sequence.
+    /// </summary>
+    /// <param name="source">A sequence of values.</param>
+    /// <param name="action">The action to execute on each element.</param>
+    /// <typeparam name="TSource">The type of elements of the source.</typeparam>
+    /// <exception cref="ArgumentNullException">source or mapper functions are null.</exception>
+    public static void ForEach<TSource>(this IEnumerable<TSource> source, Action<TSource> action)
+    {
+        if (source == null) throw new ArgumentNullException(nameof(source));
+        IEnumerator<TSource> enumerator = source.GetEnumerator();
+        while (enumerator.MoveNext())
+            action(enumerator.Current);
+        enumerator.Dispose();
+    }
+
+    /// <summary>
+    /// Executes an action for each element in this sequence.
+    /// </summary>
+    /// <param name="source">A sequence of values.</param>
+    /// <param name="action">The action to execute on each element.</param>
+    /// <typeparam name="TSource">The type of elements of the source.</typeparam>
+    /// <exception cref="ArgumentNullException">source or mapper functions are null.</exception>
+    public static void ForEach<TSource>(this IEnumerable<TSource> source, Action<TSource, int> action)
+    {
+        if (source == null) throw new ArgumentNullException(nameof(source));
+        int i = 0;
+        IEnumerator<TSource> enumerator = source.GetEnumerator();
+        while (enumerator.MoveNext())
+            action(enumerator.Current, i++);
+        enumerator.Dispose();
     }
 }

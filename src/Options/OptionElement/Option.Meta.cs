@@ -6,7 +6,7 @@ using HarmonyLib;
 using VentLib.Options.Meta;
 using VentLib.Utilities.Extensions;
 
-namespace VentLib.Options;
+namespace VentLib.Options.OptionElement;
 
 public partial class Option
 {
@@ -34,7 +34,11 @@ public partial class Option
 
     internal void LoadOrCreate(OptionStub? stub)
     {
-        if (stub == null) return;
+        if (stub == null)
+        {
+            eventHandlers.Do(h => h(new OptionChangeEvent(this, null!, GetValue(), OptionChangeType.ManualSet)));
+            return;
+        }
         int lIndex = Values.FindIndex(v => v.Value.ToString()!.Equals(stub.Value));
         if (lIndex == -1) lIndex = DefaultIndex;
         SetValue(lIndex);

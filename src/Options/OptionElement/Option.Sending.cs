@@ -1,7 +1,7 @@
 using Hazel;
 using VentLib.RPC.Interfaces;
 
-namespace VentLib.Options;
+namespace VentLib.Options.OptionElement;
 
 public partial class Option: IRpcSendable<Option>
 {

@@ -1,6 +1,7 @@
 using System.Linq;
 using HarmonyLib;
 using UnityEngine;
+using VentLib.Options.OptionElement;
 
 namespace VentLib.Options.Patches;
 

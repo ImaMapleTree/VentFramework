@@ -6,13 +6,13 @@ using UnityEngine;
 using VentLib.Utilities.Extensions;
 using Object = UnityEngine.Object;
 
-namespace VentLib.Options;
+namespace VentLib.Options.OptionElement;
 
 public partial class Option
 {
     public static GameObject SharedGameObject;
     internal static StringOption? StringOption;
-    private static Func<Option, Transform>? _transformAssigner;
+    protected static Func<Option, Transform>? _transformAssigner;
 
     static Option()
     {
@@ -29,7 +29,7 @@ public partial class Option
     internal bool NoRender;
     
 
-    public List<Option> ActiveOptions(bool isActive = true, bool isParentFalse = false)
+    public virtual List<Option> ActiveOptions(bool isActive = true, bool isParentFalse = false)
     {
         List<Option> active = new List<Option>();
         isActive = isActive && !isParentFalse;
@@ -43,7 +43,9 @@ public partial class Option
 
     public static void SetTransformAssigner(Func<Option, Transform> assigner) => _transformAssigner = assigner;
 
-    internal void RenderInit(Transform? transform = null)
+    public virtual void Render(ref float offset) { }
+    
+    internal virtual void RenderInit(Transform? transform = null)
     {
         transform ??= _transformAssigner != null ? _transformAssigner(this) : SharedGameObject.transform;
         SubOptions.Do(sub => sub.RenderInit(transform));

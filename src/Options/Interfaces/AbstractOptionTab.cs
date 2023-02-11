@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HarmonyLib;
 using UnityEngine;
+using VentLib.Options.OptionElement;
 using VentLib.Utilities.Collections;
 
 namespace VentLib.Options.Interfaces;

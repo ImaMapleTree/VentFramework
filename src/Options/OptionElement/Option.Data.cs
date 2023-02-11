@@ -7,7 +7,7 @@ using VentLib.Options.Interfaces;
 using VentLib.Utilities;
 using VentLib.Utilities.Extensions;
 
-namespace VentLib.Options;
+namespace VentLib.Options.OptionElement;
 
 public partial class Option
 {
@@ -29,17 +29,17 @@ public partial class Option
     private readonly List<Action<OptionChangeEvent>> eventHandlers = new();
     internal int DefaultIndex = -1;
     // ReSharper disable once InconsistentNaming
-    private int _index;
+    internal int CurrentIndex;
 
-    public object GetValue() => (IsIndexValid(_index) ? Values[_index] : OptionValue.Null).Value;
-    public string GetValueAsString() => (IsIndexValid(_index) ? Values[_index] : OptionValue.Null).ToString()!;
+    public object GetValue() => (IsIndexValid(CurrentIndex) ? Values[CurrentIndex] : OptionValue.Null).Value;
+    public string GetValueAsString() => (IsIndexValid(CurrentIndex) ? Values[CurrentIndex] : OptionValue.Null).ToString()!;
 
     public void SetValue(int index)
     {
         object oldValue = GetValue();
         if (!IsIndexValid(index))
             VentLogger.Error("Attempted to change option to an illegal index. Ignoring change", "Options");
-        else _index = index;
+        else CurrentIndex = index;
         if (SaveOnChange) Save();
         object newValue = GetValue();
         eventHandlers.Do(h => h.Invoke(new OptionChangeEvent(this, oldValue, newValue, OptionChangeType.ManualSet)));
@@ -48,8 +48,8 @@ public partial class Option
     public void Increment()
     {
         object oldValue = GetValue();
-        if (!IsIndexValid(++_index)) _index = 0;
-        if (!IsIndexValid(_index)) VentLogger.Error("Called increment on an option with no values.", "Options");
+        if (!IsIndexValid(++CurrentIndex)) CurrentIndex = 0;
+        if (!IsIndexValid(CurrentIndex)) VentLogger.Error("Called increment on an option with no values.", "Options");
         if (SaveOnChange) Save();
         object newValue = GetValue();
         VentLogger.Fatal($"Incremented New Value: {newValue}");
@@ -61,8 +61,8 @@ public partial class Option
     public void Decrement()
     {
         object oldValue = GetValue();
-        if (!IsIndexValid(--_index)) _index = Values.Count - 1;
-        if (!IsIndexValid(_index)) VentLogger.Error("Called decrement on an option with no values.", "Options");
+        if (!IsIndexValid(--CurrentIndex)) CurrentIndex = Values.Count - 1;
+        if (!IsIndexValid(CurrentIndex)) VentLogger.Error("Called decrement on an option with no values.", "Options");
         if (SaveOnChange) Save();
         object newValue = GetValue();
         VentLogger.Fatal($"Decremented New Value: {newValue}");

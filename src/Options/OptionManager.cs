@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using VentLib.Logging;
 using VentLib.Options.Meta;
+using VentLib.Options.OptionElement;
 using VentLib.Utilities;
 
 namespace VentLib.Options;
@@ -44,6 +46,11 @@ public class OptionManager
         VentLogger.Trace($"Loading Option Manager for: {assembly}");
         assembly ??= Vents.RootAssemby;
         Managers[assembly] = new OptionManager(assembly);
+    }
+
+    public Option? GetOption(string qualifier)
+    {
+        return Options.FirstOrDefault(o => o.Qualifier() == qualifier);
     }
 
     public void LoadAndAdd(Option option, bool suboption = false, bool isRendered = true)

@@ -6,6 +6,7 @@ using HarmonyLib;
 using VentLib.Commands.Attributes;
 using VentLib.Commands.Interfaces;
 using VentLib.Logging;
+using IntRange = VentLib.Ranges.IntRange;
 
 namespace VentLib.Commands;
 
@@ -40,7 +41,7 @@ public class CommandRunner
                     {
                         // lol this is so lazy
                         object[] lazyArray = (object[])obj;
-                        ((MethodInfo)lazyArray[1]).Invoke(lazyArray[0], new object[] { context1.Source, context1 });
+                        AutocastAndInvoke((MethodInfo)lazyArray[1], lazyArray[0], context1);
                     }
                 });
 
@@ -61,6 +62,40 @@ public class CommandRunner
             if (commandAttribute == null) return;
             RegisterType(t, commandAttribute);
         });
+    }
+
+    private void AutocastAndInvoke(MethodInfo method, object instance, CommandContext cmdContext)
+    {
+        ParameterInfo[] parameters = method.GetParameters();
+        switch (parameters.Length)
+        {
+            case 0:
+                method.Invoke(instance, null);
+                break;
+            case 1:
+                method.Invoke(instance, new object[] { cmdContext.Source });
+                break;
+            case 2:
+                method.Invoke(instance, new object[] { cmdContext.Source, cmdContext });
+                break;
+            default:
+                object[] args = parameters.Select((p, i) =>
+                {
+                    if (i <= 1) return null;
+                    Type type = p.ParameterType;
+                    try {
+                        return Convert.ChangeType(cmdContext.Args[i-2], type);
+                    } catch {
+                        cmdContext.Errored = true;
+                        cmdContext.ErroredParameters.Add(i);
+                        return type.IsValueType ? Activator.CreateInstance(type) : null;
+                    }
+                }).ToArray()!;
+                args[0] = cmdContext.Source;
+                args[1] = cmdContext;
+                method.Invoke(instance, args);
+                break;
+        }
     }
 
     private void RegisterType(Type type, CommandAttribute attribute)

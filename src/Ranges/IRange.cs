@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace VentLib.Options.Ranges;
+namespace VentLib.Ranges;
 
 public interface IRange<out T>
 {

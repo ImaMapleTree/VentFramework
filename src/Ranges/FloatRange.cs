@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace VentLib.Options.Ranges;
+namespace VentLib.Ranges;
 
 public class FloatRange: IRange<float>
 {

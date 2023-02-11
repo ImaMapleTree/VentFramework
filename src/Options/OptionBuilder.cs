@@ -5,8 +5,9 @@ using System.Reflection;
 using UnityEngine;
 using VentLib.Localization;
 using VentLib.Options.Interfaces;
-using FRange = VentLib.Options.Ranges.FloatRange;
-using IRange = VentLib.Options.Ranges.IntRange;
+using VentLib.Options.OptionElement;
+using FRange = VentLib.Ranges.FloatRange;
+using IRange = VentLib.Ranges.IntRange;
 using static VentLib.Options.OptionValue;
 
 namespace VentLib.Options;
@@ -26,6 +27,14 @@ public class OptionBuilder
         option.Level = level;
     }
 
+    public static OptionBuilder Typed<T>() where T: Option
+    {
+        OptionBuilder optionBuilder = new OptionBuilder {
+            option = (T)typeof(T).GetConstructor(Array.Empty<Type>())!.Invoke(null)
+        };
+        return optionBuilder;
+    }
+        
     public static OptionBuilder From(Option option, BuilderFlags flags = BuilderFlags.KeepNone) => option.ToBuilder(flags);
 
     public OptionBuilder Name(string name)
