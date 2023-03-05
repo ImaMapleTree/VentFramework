@@ -3,34 +3,69 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using BepInEx;
 using VentLib.Options;
+using VentLib.Options.IO;
+using VentLib.Options.Processors;
 using VentLib.Utilities;
+using VentLib.Utilities.Extensions;
 
 namespace VentLib.Logging;
 
 public static class VentLogger
 {
-    public static StreamWriter? OutputStream;
+    public static HookedWriter? OutputStream;
     private static readonly bool CreateNewLog;
+    private static int _logLevel;
+    private static int _fileLevel;
 
     static VentLogger()
     {
-        var wfOpt = new OptionBuilder().Name("Write To File").Values(0, true, false).BuildAndRegister(isRendered: false);
-        var cnlOpt = new OptionBuilder().Name("Create New Log").Values(0, true, false).BuildAndRegister(isRendered: false);
-        wfOpt.Save();
-        cnlOpt.Save();
-        var writeToFile = (bool)wfOpt.GetValue();
-        CreateNewLog = (bool)cnlOpt.GetValue();
-        wfOpt.Delete();
-        cnlOpt.Delete();
+        OptionManager loggerManager = OptionManager.GetManager(file: "logger_options.txt");
+        ValueTypeProcessors.AddTypeProcessor(new LogLevelValueTypeProcessor());
+        var writeToFileOption = new OptionBuilder().Name("Write To File")
+            .Description("If the logger should write to a file.\nDefault = true")
+            .Values(0, true, false)
+            .BuildAndRegister(loggerManager);
+        
+        var createNewLogOptions = new OptionBuilder().Name("Create New Log")
+            .Description("If the logger should create a new log for every run. OR, if false, override a common log.\nDefault = true")
+            .Values(0, true, false)
+            .BuildAndRegister(loggerManager);
+
+        var consoleLogLevel = new OptionBuilder().Name("Console Log Level")
+            .Description("Minimum level for logs to display in the Console.\nValues = [ALL, TRACE, DEBUG, INFO, WARN, ERROR, FATAL]")
+            .Values(3, LogLevel.All, LogLevel.Trace, LogLevel.Debug, LogLevel.Info, LogLevel.Warn, LogLevel.Error, LogLevel.Fatal)
+            .BuildAndRegister(loggerManager);
+
+        var fileLogLevel = new OptionBuilder().Name("File Log Level")
+            .Description("Minimum level for logs to display in the log file. Cannot be higher than Console level.\nValues = [SAME, ALL, TRACE, DEBUG, INFO, WARN, ERROR, FATAL]")
+            .Values(0, LogLevel.All, LogLevel.Trace, LogLevel.Debug, LogLevel.Info, LogLevel.Warn, LogLevel.Error, LogLevel.Fatal)
+            .IOSettings(settings => settings.UnknownValueAction = ADEAnswer.Allow)
+            .BuildAndRegister(loggerManager);
+
+        var logDirectoryOption = new OptionBuilder().Name("Log Directory")
+            .Description("Directory for storing log files.")
+            .Value("logs")
+            .IOSettings(settings => settings.UnknownValueAction = ADEAnswer.Allow)
+            .BuildAndRegister(loggerManager);
+        
+        var writeToFile = writeToFileOption.GetValue<bool>();
+        CreateNewLog = createNewLogOptions.GetValue<bool>();
+        _logLevel = consoleLogLevel.GetValue<LogLevel>().Level;
+        LogLevel level = fileLogLevel.GetValue<LogLevel>();
+        _fileLevel = level.Name == "SAME" ? _logLevel : level.Level;
+        
         if (!writeToFile) return;
-        DirectoryInfo logDirectory = new DirectoryInfo("logs/");
+        DirectoryInfo logDirectory = new DirectoryInfo(logDirectoryOption.GetValue<string>());
         if (!logDirectory.Exists) logDirectory.Create();
         string fullFilename = CreateFullFilename(logDirectory);
-        OutputStream = new StreamWriter(File.Open(fullFilename, FileMode.Create));
+        OutputStream = new HookedWriter(File.Open(fullFilename, FileMode.Create));
         OutputStream.AutoFlush = true;
+        
+        object driver = typeof(ConsoleManager).GetProperty("Driver", AccessFlags.StaticAccessFlags)!.GetValue(null)!;
+        driver.GetType().GetProperty("StandardOut", AccessFlags.InstanceAccessFlags)!.SetValue(driver, OutputStream, AccessFlags.InstanceAccessFlags, null, null, null);
+        driver.GetType().GetProperty("ConsoleOut", AccessFlags.InstanceAccessFlags)!.SetValue(driver, OutputStream, AccessFlags.InstanceAccessFlags, null, null, null);
     }
 
     public static void Trace(string message, string? tag = null) => Log(LogLevel.Trace, message, tag, Assembly.GetCallingAssembly());
@@ -50,52 +85,55 @@ public static class VentLogger
 
     public static void Log(LogLevel level, string message, string? tag = null, Assembly? source = null)
     {
-        if (level.Level < Configuration.AllowedLevel.Level) return;
-        ConsoleManager.SetConsoleColor(level.Color);
         
-        source ??= Assembly.GetCallingAssembly();
-        string sourcePrefix = !Configuration.ShowSourceName ? "" : ":" + Vents.AssemblyNames!.GetValueOrDefault(source, "Unknown");
+        if (level.Level < _logLevel && level.Level < _fileLevel) return;
 
+        
+
+        source ??= Assembly.GetCallingAssembly();
+        string sourcePrefix = "";
+        if (Configuration.ShowSourceName)
+        {
+            int longestSource = Vents.AssemblyNames.Values.Select(s => s.Length).Sorted(l => l).LastOrDefault(0);
+            sourcePrefix = ":" + Vents.AssemblyNames!.GetValueOrDefault(source, "Unknown").PadLeft(longestSource);
+        }
+        
         string levelPrefix = level.Name.PadRight(LogLevel.LongestName);
         string tagPrefix = tag == null ? "" : $"[{tag}]";
         
         string fullMessage = $"[{levelPrefix}{sourcePrefix}][{DateTime.Now:hh:mm:ss}]{tagPrefix} {message}";
+
+        if (level.Level < _logLevel && level.Level >= _fileLevel)
+        {
+            OutputStream?.WriteLineToFile(fullMessage);
+            return;
+        }
+
+        ConsoleManager.SetConsoleColor(level.Color);
         
         if (Configuration.Output is LogOutput.StandardOut)
             ConsoleManager.StandardOutStream?.WriteLine(fullMessage);
         else
             ConsoleManager.ConsoleStream?.WriteLine(fullMessage);
         
-        OutputStream?.WriteLine(fullMessage);
         ConsoleManager.SetConsoleColor(Configuration.DefaultColor);
     }
 
     private static string CreateFullFilename(DirectoryInfo logDirectory)
     {
-        if (!CreateNewLog) return Path.Join(logDirectory.FullName, "latest.txt");
+        if (!CreateNewLog) return Path.Join(logDirectory.FullName, "latest.log");
         string dateFilename = DateTime.Now.ToString("yyyy-MM-dd");
         FileInfo[] allLogs = logDirectory.GetFiles();
         int similarNames = 1;
-        while (allLogs.Any(f => f.Name == $"{dateFilename}-{similarNames}.txt")) similarNames++;
-        return Path.Join(logDirectory.FullName, $"{dateFilename}-{similarNames}.txt");
+        while (allLogs.Any(f => f.Name == $"{dateFilename}-{similarNames}.log")) similarNames++;
+        return Path.Join(logDirectory.FullName, $"{dateFilename}-{similarNames}.log");
     }
     
     public static class Configuration
     {
-        public static LogLevel AllowedLevel { get; private set; } = LogLevel.All;
         public static ConsoleColor DefaultColor { get; private set; } = ConsoleColor.DarkGray;
         public static LogOutput Output { get; private set; } = LogOutput.ConsoleOut;
         public static bool ShowSourceName { get; private set; } = true;
-
-        public static void SetAssemblyRefName(Assembly assembly, string name)
-        {
-            Vents.AssemblyNames[assembly] = name;
-        }
-        
-        public static void SetLevel(LogLevel level)
-        {
-            AllowedLevel = level;
-        }
 
         public static void SetDefaultColor(ConsoleColor color)
         {

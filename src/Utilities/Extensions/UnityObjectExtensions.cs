@@ -72,4 +72,6 @@ public static class UnityObjectExtensions
     {
         Object.DestroyImmediate(obj);
     }
+
+    public static string TypeName(this Object obj) => obj.GetIl2CppType().FullName;
 }

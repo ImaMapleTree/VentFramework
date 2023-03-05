@@ -67,6 +67,8 @@ public class AssemblyVersion: Version
         return HashCode.Combine(Assembly, MajorVersion, MinorVersion, Build, Revision, MajorRevision, MinorRevision);
     }
 
+    public override string ToSimpleName() => $"{MajorRevision}.{MinorVersion}.{Build}";
+
     public override string ToString()
     {
         return $"AssemblyVersion({MajorVersion}.{MinorRevision}.{Build}.{Revision}. {MajorRevision}/{MinorRevision})";

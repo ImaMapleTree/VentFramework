@@ -11,5 +11,7 @@ public sealed class NoVersion: Version
 
     protected override void WriteInfo(MessageWriter writer) { }
 
+    public override string ToSimpleName() => "";
+
     public override string ToString() => "NoVersion";
 }

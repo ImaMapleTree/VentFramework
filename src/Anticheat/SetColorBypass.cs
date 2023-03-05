@@ -1,4 +1,4 @@
-using VentLib.RPC;
+using VentLib.Networking.RPC;
 
 namespace VentLib.Anticheat;
 

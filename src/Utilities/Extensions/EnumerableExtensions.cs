@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
+using VentLib.Logging;
+using Object = UnityEngine.Object;
 
 namespace VentLib.Utilities.Extensions;
 
@@ -134,5 +136,78 @@ public static class EnumerableExtensions
         while (enumerator.MoveNext())
             action(enumerator.Current, i++);
         enumerator.Dispose();
+    }
+
+    public static IEnumerable<TSource> Sorted<TSource, TComparable>(this IEnumerable<TSource> source, Func<TSource, TComparable> sortMapper) where TComparable : IComparable<TComparable>
+    {
+        (TSource, TComparable)[] arr = source.Select(element => (element, sortMapper(element))).ToArray();
+        Sort(arr, 0, arr.Length - 1);
+        return arr.Select(tuple => tuple.Item1);
+    }
+
+    internal static void Debug<TSource>(this IEnumerable<TSource> source) where TSource : Object
+    {
+        VentLogger.Fatal($"Debugging: {source.Select(s => (s.name, s.TypeName())).StrJoin()}");
+    }
+    
+    
+    
+    
+    
+    
+    
+    // A utility function to swap two elements
+    private static void Swap<T, TComparable>(IList<(T ,TComparable)> list, int i, int j) where TComparable: IComparable<TComparable>
+    {
+        (list[i], list[j]) = (list[j], list[i]);
+    }
+ 
+    /* This function takes last element as pivot, places
+         the pivot element at its correct position in sorted
+         array, and places all smaller (smaller than pivot)
+         to left of pivot and all greater elements to right
+         of pivot */
+    static int Partition<T, TComparable>(IList<(T, TComparable)> arr, int low, int high) where TComparable: IComparable<TComparable>
+    {
+ 
+        // pivot
+        TComparable pivot = arr[high].Item2;
+
+        // Index of smaller element and
+        // indicates the right position
+        // of pivot found so far
+        int i = (low - 1);
+ 
+        for (int j = low; j <= high - 1; j++)
+        {
+
+            // If current element is smaller
+            // than the pivot
+            if (arr[j].Item2.CompareTo(pivot) >= 0) continue;
+            // Increment index of
+            // smaller element
+            i++;
+            Swap(arr, i, j);
+        }
+        Swap(arr, i + 1, high);
+        return (i + 1);
+    }
+ 
+    /* The main function that implements QuickSort
+                arr[] --> Array to be sorted,
+                low --> Starting index,
+                high --> Ending index
+       */
+    static void Sort<T, TComparable>(IList<(T, TComparable)> arr, int low, int high) where TComparable: IComparable<TComparable>
+    {
+        if (low >= high) return;
+        // pi is partitioning index, arr[p]
+        // is now at right place
+        int pi = Partition(arr, low, high);
+ 
+        // Separately sort elements before
+        // partition and after partition
+        Sort(arr, low, pi - 1);
+        Sort(arr, pi + 1, high);
     }
 }

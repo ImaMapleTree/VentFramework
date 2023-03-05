@@ -8,11 +8,13 @@ using HarmonyLib;
 using VentLib.Commands;
 using VentLib.Localization;
 using VentLib.Logging;
+using VentLib.Networking.Interfaces;
+using VentLib.Networking.Managers;
+using VentLib.Networking.RPC;
+using VentLib.Networking.RPC.Attributes;
 using VentLib.Options;
-using VentLib.RPC;
-using VentLib.RPC.Attributes;
-using VentLib.RPC.Interfaces;
 using VentLib.Utilities;
+using VentLib.Utilities.Attributes;
 using VentLib.Version;
 
 namespace VentLib;
@@ -45,6 +47,20 @@ public static class Vents
 
         return RPCs.FirstOrDefault(v => targetMethod == null || v.TargetMethod.Equals(targetMethod));
     }
+    
+    public static ModRPC? FindRPC(uint callId, Type declaringClass, string methodName, Type[]? parameters = null)
+    {
+        MethodInfo? method = AccessTools.Method(declaringClass, methodName, parameters);
+        if (method == null)
+            throw new NullReferenceException($"No matching method with name {methodName} in class {declaringClass}");
+        if (!RpcBindings.TryGetValue(callId, out List<ModRPC>? RPCs))
+        {
+            VentLogger.Warn($"Attempted to find unregistered RPC: {callId}", "VentLib");
+            return null;
+        }
+
+        return RPCs.FirstOrDefault(v => v.TargetMethod.Equals(method));
+    }
 
     public static PlayerControl? GetLastSender(uint rpcId) => LastSenders.GetValueOrDefault(rpcId);
 
@@ -53,12 +69,14 @@ public static class Vents
         VentLogger.Info($"Registering {assembly.GetName().Name}");
         if (RegisteredAssemblies.ContainsKey(assembly)) return;
         RegisteredAssemblies.Add(assembly, VentControlFlag.AllowedReceiver | VentControlFlag.AllowedSender);
-        AssemblyNames.Add(assembly, assembly.GetName().Name!);
+        if (!AssemblyNames.ContainsKey(assembly))
+            AssemblyNames.Add(assembly, assembly.GetName().Name!);
 
+        LoadStatic.LoadStaticTypes(assembly);
         if (localize)
             Localizer.Load(assembly);
         
-        OptionManager.Load(assembly);
+        OptionManager.GetManager(assembly);
         CommandRunner.Register(assembly);
 
         var methods = assembly.GetTypes()
@@ -98,6 +116,11 @@ public static class Vents
             ? blockedClients.AddToArray(clientId)
             : new[] { clientId };
         BlockedReceivers[assembly] = newBlockedArray;
+    }
+    
+    public static void SetAssemblyRefName(Assembly assembly, string name)
+    {
+        AssemblyNames[assembly] = name;
     }
     
     internal static int[]? CallingAssemblyBlacklist() => BlockedReceivers.GetValueOrDefault(Assembly.GetCallingAssembly());

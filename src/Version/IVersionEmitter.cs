@@ -1,4 +1,4 @@
-using VentLib.Version.Handshake;
+using VentLib.Networking.Handshake;
 
 namespace VentLib.Version;
 

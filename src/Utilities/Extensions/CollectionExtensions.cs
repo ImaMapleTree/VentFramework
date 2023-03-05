@@ -26,10 +26,17 @@ public static class CollectionExtensions
         return list.Pop(new Random().Next(list.Count));
     }
 
-    public static T Pop<T>(this List<T> list, int index)
+    public static T Pop<T>(this List<T> list, int index = 0)
     {
         T value = list[index];
         list.RemoveAt(index);
+        return value;
+    }
+    
+    public static T PopLast<T>(this List<T> list)
+    {
+        T value = list[^1];
+        list.RemoveAt(list.Count - 1);
         return value;
     }
 

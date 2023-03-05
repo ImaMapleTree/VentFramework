@@ -84,7 +84,7 @@ public class GitVersion: Version
         writer.Write(Sha);
         writer.Write(Tag);
     }
-    
+
     public override bool Equals(object? obj)
     {
         if (obj is not GitVersion other) return false;
@@ -96,6 +96,8 @@ public class GitVersion: Version
         return HashCode.Combine(MajorVersion, MinorVersion, PatchNumber, CommitNumber, Branch, Sha, Tag);
     }
 
+    public override string ToSimpleName() => $"{MajorVersion}.{MinorVersion}.{PatchNumber}";
+    
     public override string ToString()
     {
         return $"GitVersion({MajorVersion}.{MinorVersion}.{PatchNumber} Branch: {Branch} Commit: {CommitNumber})";

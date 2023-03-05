@@ -32,7 +32,19 @@ internal class ReflectionObject
             default:
                 throw new ArgumentOutOfRangeException();
         }
+    }
 
+    internal object? GetValue()
+    {
+        return (ReflectionType) switch
+        {
+            ReflectionType.Class => null,
+            ReflectionType.Method => null,
+            ReflectionType.StaticField => ((FieldInfo)Object).GetValue(null),
+            ReflectionType.InstanceField => null,
+            ReflectionType.Property => null,
+            _ => throw new ArgumentOutOfRangeException()
+        };
     }
 }
 

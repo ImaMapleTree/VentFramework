@@ -13,6 +13,7 @@ internal static class GameJoinPatch
         {
             Vents.RegisteredAssemblies[assembly] = VentControlFlag.AllowedReceiver | VentControlFlag.AllowedSender;
             Vents.BlockedReceivers[assembly] = null;
+            Vents.VersionControl.PassedClients.Clear();
         }
         VentLogger.Info("Refreshed Assembly Flags", "VentLib");
     }

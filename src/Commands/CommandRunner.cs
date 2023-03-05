@@ -6,7 +6,6 @@ using HarmonyLib;
 using VentLib.Commands.Attributes;
 using VentLib.Commands.Interfaces;
 using VentLib.Logging;
-using IntRange = VentLib.Ranges.IntRange;
 
 namespace VentLib.Commands;
 

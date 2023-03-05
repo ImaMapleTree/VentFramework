@@ -19,6 +19,7 @@ public static class StringExtensions
     /// <returns>If times is greater than 0, a new repeated string, otherwise the original string</returns>
     public static string Repeat(this string str, int times)
     {
+        if (times < 0) return "";
         for (int i = 0; i < times; i++) str += str;
         return str;
     }

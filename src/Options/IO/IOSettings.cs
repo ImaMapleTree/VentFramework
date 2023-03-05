@@ -1,0 +1,22 @@
+using VentLib.Options.Interfaces;
+using VentLib.Utilities.Optionals;
+
+// ReSharper disable InconsistentNaming
+
+namespace VentLib.Options.IO;
+
+public class IOSettings
+{
+    public Optional<Option> Source = Optional<Option>.Null();
+
+    public ADEAnswer UnknownValueAction { get; set; } = ADEAnswer.ThrowException;
+
+    public IOptionValueLoader OptionValueLoader { get; set; } = new OptionValueLoader();
+}
+
+public enum ADEAnswer
+{
+    Allow,
+    UseDefault,
+    ThrowException
+}

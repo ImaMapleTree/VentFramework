@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using VentLib.Version.Handshake;
+using VentLib.Networking.Handshake;
 
 namespace VentLib.Version;
 
@@ -8,10 +8,11 @@ public class VersionControl
 {
     public static VersionControl Instance = null!;
     public Version? Version;
-    internal Func<Version, HandshakeResult>? HandshakeFilter;
-    internal List<(ReceiveExecutionFlag, Action<Version, PlayerControl>)> VersionHandles = new();
     internal bool Handshake = true;
     internal float ResponseTimer = 1f;
+    internal Func<Version, HandshakeResult>? HandshakeFilter;
+    internal readonly List<(ReceiveExecutionFlag, Action<Version, PlayerControl>)> VersionHandles = new();
+    internal readonly HashSet<int> PassedClients = new(); 
 
     public VersionControl()
     {
@@ -38,6 +39,8 @@ public class VersionControl
     {
         ResponseTimer = timer;
     }
+
+    public bool IsModdedClient(int clientId) => PassedClients.Contains(clientId);
 }
 
 [Flags]

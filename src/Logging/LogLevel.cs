@@ -5,7 +5,7 @@ namespace VentLib.Logging;
 
 public struct LogLevel : IComparable<LogLevel>
 {
-    private static readonly HashSet<LogLevel> Levels = new();
+    internal static readonly HashSet<LogLevel> Levels = new();
     internal static int LongestName = 7;
 
     public static LogLevel All = new("ALL", Int32.MinValue);

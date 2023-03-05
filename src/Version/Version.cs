@@ -1,7 +1,8 @@
 using System;
+using HarmonyLib;
 using Hazel;
-using VentLib.RPC;
-using VentLib.RPC.Interfaces;
+using VentLib.Networking.Interfaces;
+using VentLib.Networking.Managers;
 using VentLib.Utilities;
 using VentLib.Version.Assembly;
 using VentLib.Version.Git;
@@ -21,11 +22,11 @@ public abstract class Version: IRpcSendable<Version>
         switch (type)
         {
             case VersionType.None:
-                return Activator.CreateInstance<NoVersion>();
+                return AccessTools.CreateInstance<NoVersion>();
             case VersionType.Git:
-                return Activator.CreateInstance<GitVersion>().Read(reader);
+                return AccessTools.CreateInstance<GitVersion>().Read(reader);
             case VersionType.Assembly:
-                return Activator.CreateInstance<AssemblyVersion>().Read(reader);
+                return AccessTools.CreateInstance<AssemblyVersion>().Read(reader);
             case VersionType.Custom:
                 string assemblyName = reader.ReadString();
                 var containingAssembly = AssemblyUtils.FindAssemblyFromFullName(assemblyName);
@@ -34,7 +35,7 @@ public abstract class Version: IRpcSendable<Version>
                 Type? versionType = containingAssembly.GetType(customTypeName);
                 if (versionType == null)
                     throw new NullReferenceException($"Could not find Version class \"{customTypeName}\" in assembly \"{assemblyName}\"");
-                object? constructed = Activator.CreateInstance(versionType);
+                object? constructed = AccessTools.CreateInstance(versionType);
                 if (constructed is not Version customVersion)
                     throw new ArgumentException($"Constructed type \"{constructed?.GetType()}\" does not inherit VentLib.Version");
                 return customVersion.Read(reader);
@@ -57,6 +58,8 @@ public abstract class Version: IRpcSendable<Version>
         writer.Write((byte)type);
         WriteInfo(writer);
     }
+
+    public abstract string ToSimpleName();
 }
 
 public enum VersionType: byte

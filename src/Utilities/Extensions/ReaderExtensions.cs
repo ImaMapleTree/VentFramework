@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Hazel;
-using VentLib.RPC;
+using VentLib.Networking.Helpers;
+using VentLib.Networking.RPC;
 
 namespace VentLib.Utilities.Extensions;
 

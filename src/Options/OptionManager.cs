@@ -1,66 +1,132 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using VentLib.Logging;
-using VentLib.Options.Meta;
-using VentLib.Options.OptionElement;
+using VentLib.Options.GUI.Events;
+using VentLib.Options.Interfaces;
+using VentLib.Options.IO;
 using VentLib.Utilities;
+using VentLib.Utilities.Collections;
+using VentLib.Utilities.Extensions;
 
 namespace VentLib.Options;
 
 public class OptionManager
 {
     public static string OptionPath { get; } = "BepInEx/config/";
-    internal static Dictionary<Assembly, OptionManager> Managers = new();
+    public static string DefaultFile = "options.txt";
+    internal static Dictionary<Assembly, List<OptionManager>> Managers = new();
+    internal static Dictionary<String, Option> AllOptions = new();
 
-    internal static HashSet<Option> NewRegisters = new();
-    public static List<Option> AllOptions = new();
-    private Metadata metadata;
-    private Assembly assembly;
-    internal readonly List<Option> Options = new();
+    private readonly OrderedDictionary<string, Option> options = new();
+    private FileInfo file;
+    private OptionReader optionReader;
+    private OrderedSet<Action<IOptionEvent>> optionEventHandlers = new();
+    private bool saving;
+    private string filePath;
 
-    internal OptionManager(Assembly assembly)
+    internal OptionManager(Assembly assembly, string path)
     {
-        this.assembly = assembly;
         string name = AssemblyUtils.GetAssemblyRefName(assembly);
         string optionPath = name == "root" ? OptionPath : Path.Join(OptionPath, name);
-        DirectoryInfo optionDirectory = new DirectoryInfo(optionPath);
+        DirectoryInfo optionDirectory = new(optionPath);
         if (!optionDirectory.Exists) optionDirectory.Create();
-        metadata = Metadata.Parse(new FileInfo(Path.Join(optionPath, "options.txt")));
+        filePath = path;
+        file = optionDirectory.GetFile(path);
+        optionReader = new OptionReader(file.ReadText(true));
+        optionReader.ReadToEnd();
     }
 
-    internal void Save()
+    public static OptionManager GetManager(Assembly? assembly = null, string? file = null)
     {
-        metadata.DumpAll(Options);
-    }
-
-    public static OptionManager GetManager(Assembly? assembly = null)
-    {
+        file ??= DefaultFile;
         assembly ??= Assembly.GetCallingAssembly();
-        return Managers[assembly];
-    }
-    
-    public static void Load(Assembly? assembly)
-    {
-        VentLogger.Trace($"Loading Option Manager for: {assembly}");
-        assembly ??= Vents.RootAssemby;
-        Managers[assembly] = new OptionManager(assembly);
+        List<OptionManager> managers = Managers.GetOrCompute(assembly, () => new List<OptionManager>());
+        OptionManager? manager = managers.FirstOrDefault(m => m.filePath == file);
+        if (manager != null) return manager;
+        manager = new OptionManager(assembly, file);
+        managers.Add(manager);
+        return manager;
     }
 
     public Option? GetOption(string qualifier)
     {
-        return Options.FirstOrDefault(o => o.Qualifier() == qualifier);
+        return GetOptions().FirstOrDefault(opt => opt.Qualifier() == qualifier);
     }
 
-    public void LoadAndAdd(Option option, bool suboption = false, bool isRendered = true)
+    public List<Option> GetOptions() => options.GetValues().ToList();
+
+    public void Register(Option option)
     {
-        Option.OptionStub? stub = metadata.GetStub(option.Qualifier());
-        option.LoadOrCreate(stub);
-        AllOptions.Add(option);
-        if (suboption) return;
-        Options.Add(option);
-        if (!isRendered) return;
-        NewRegisters.Add(option);
+        AllOptions[option.Qualifier()] = option;
+        
+        option.RegisterEventHandler(ev =>
+        {
+            if (ev is OptionValueIncrementEvent or OptionValueDecrementEvent) DelaySave();
+        });
+
+        if (!option.HasParent())
+            options[option.Qualifier()] = option;
+        option.Manager = this;
+        option.Load(false);
+        option.RegisterEventHandler(ChangeCallback);
+        OptionHelpers.GetChildren(option).ForEach(Register);
     }
+    
+    public void RegisterEventHandler(Action<IOptionEvent> eventHandler) => optionEventHandlers.Add(eventHandler);
+
+    internal void Load(Option option, bool create = false)
+    {
+        try
+        {
+            optionReader.Update(option);
+        }
+        catch (ArgumentNullException)
+        {
+            if (!create) return;
+            OptionWriter writer = new(file.OpenWriter());
+            writer.Write(option, addNewLine: true);
+            writer.Close();
+        }
+    }
+
+    internal void SaveAll()
+    {
+        OptionWriter writer = new(file.OpenWriter(create: true, fileMode: FileMode.Create));
+        writer.WriteAll(GetOptions());
+        writer.Close();
+    }
+
+    private void DelaySave()
+    {
+        if (saving) return;
+        saving = true;
+        Async.ScheduleThreaded(() =>
+        {
+            SaveAll();
+            saving = false;
+        }, 10f);
+    }
+    
+    private void ChangeCallback(IOptionEvent optionEvent)
+    {
+        optionEventHandlers.ForEach(eh => eh(optionEvent));
+    }
+}
+
+[Flags]
+public enum OptionSortType
+{
+    MainOption = 1,
+    SubOption = 2,
+    All = 3
+}
+
+public enum OptionLoadMode
+{
+    None,
+    Load,
+    LoadOrCreate
 }

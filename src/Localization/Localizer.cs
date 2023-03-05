@@ -36,7 +36,7 @@ public static class Localizer
 
     private static string _currentLanguage = DefaultLanguage;
     private static LanguageLoader _loader = null!;
-    private static string? _root;
+    private static string? _root => Vents.AssemblyNames.GetValueOrDefault(Vents.RootAssemby);
 
     /// <summary>
     /// Provided a valid key-path, returns a translation for the current client's language. These translations are created
@@ -127,8 +127,6 @@ public static class Localizer
     internal static void Load(Assembly assembly)
     {
         string assemblyName = assembly == Vents.RootAssemby ? "root" : assembly.GetName().Name!;
-        if (assembly == Vents.RootAssemby)
-            _root =  assembly.GetName().Name!;
         VentLogger.Info($"Loading Translations for {assemblyName}");
         if (!_loader.SupportedLanguages.ContainsKey(assemblyName) && assemblyName != "root")
             new DirectoryInfo(LanguageFolder).CreateSubdirectory(assemblyName);
@@ -152,14 +150,14 @@ public static class Localizer
         {
             ReflectionObject reflectionObject = LocalizedAttribute.Attributes[attribute];
             if (attribute.Source?.ReflectionType is ReflectionType.Class) continue;
-            string value = GetValueFromPath(language, attribute.GetPath());
+            string value = GetValueFromPath(language, attribute.GetPath(), defaultValue: attribute.Source?.GetValue()?.ToString());
             reflectionObject.SetValue(value);
         }
 
         language.Dump();
     }
 
-    internal static string GetValueFromPath(Language language, string path, bool createIfNull = true)
+    internal static string GetValueFromPath(Language language, string path, bool createIfNull = true, string? defaultValue = null)
     {
         Dictionary<object, object> dictionary = language.Translations;
         bool created = false;
@@ -180,7 +178,7 @@ public static class Localizer
 
         if (createIfNull && !dictionary.ContainsKey(finalPath)) {
             created = true;
-            dictionary[finalPath] = "N/A";
+            dictionary[finalPath] = defaultValue ?? "N/A";
         }
 
         if (created) language.Dump();

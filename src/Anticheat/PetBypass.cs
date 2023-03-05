@@ -1,4 +1,4 @@
-using VentLib.RPC;
+using VentLib.Networking.RPC;
 using VentLib.Utilities;
 
 namespace VentLib.Anticheat;
@@ -33,6 +33,5 @@ public static class PetBypass
         
         if (!applyNow) return;
         ShapeshiftBypass.Shapeshift(player, player, false);
-        Async.Schedule(() => ShapeshiftBypass.RevertShapeshift(player, false), NetUtils.DeriveDelay(0.2f));
     }
 }
