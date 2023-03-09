@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using VentLib.Logging;
-using VentLib.Options.GUI.Events;
+using VentLib.Options.Game.Events;
 using VentLib.Options.Interfaces;
 using VentLib.Options.IO;
 using VentLib.Utilities;
@@ -51,6 +51,12 @@ public class OptionManager
         return manager;
     }
 
+    public static List<OptionManager> GetAllManagers(Assembly? assembly = null)
+    {
+        assembly ??= Assembly.GetCallingAssembly();
+        return Managers.GetOrCompute(assembly, () => new List<OptionManager>());
+    }
+
     public Option? GetOption(string qualifier)
     {
         return GetOptions().FirstOrDefault(opt => opt.Qualifier() == qualifier);
@@ -94,9 +100,11 @@ public class OptionManager
 
     internal void SaveAll()
     {
+        VentLogger.Trace($"Saving Options to \"{filePath}\"", "OptionSave");
         OptionWriter writer = new(file.OpenWriter(create: true, fileMode: FileMode.Create));
         writer.WriteAll(GetOptions());
         writer.Close();
+        VentLogger.Trace("Saved Options", "OptionSave");
     }
 
     private void DelaySave()

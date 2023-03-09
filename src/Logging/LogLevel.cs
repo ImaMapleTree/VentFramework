@@ -13,6 +13,7 @@ public struct LogLevel : IComparable<LogLevel>
     public static LogLevel Old = new("OLD", 0);
     public static LogLevel Debug = new("DEBUG", 1, ConsoleColor.DarkYellow);
     public static LogLevel Info = new("INFO", 2);
+    public static LogLevel High = new("HIGH", 3, ConsoleColor.White);
     public static LogLevel Warn = new("WARN", 3, ConsoleColor.Yellow);
     public static LogLevel Error = new("ERROR", 4, ConsoleColor.Red);
     public static LogLevel Fatal = new("FATAL", 6, ConsoleColor.DarkRed);
@@ -63,6 +64,8 @@ public struct LogLevel : IComparable<LogLevel>
         if (obj is not LogLevel otherLevel) return false;
         return otherLevel.Name == Name && otherLevel.Level == Level;
     }
+
+    public override string ToString() => Name;
 
     public override int GetHashCode() => Name.GetHashCode() + Level.GetHashCode();
 }

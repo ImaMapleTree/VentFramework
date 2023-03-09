@@ -20,7 +20,8 @@ public static class StringExtensions
     public static string Repeat(this string str, int times)
     {
         if (times < 0) return "";
-        for (int i = 0; i < times; i++) str += str;
+        string append = str;
+        for (int i = 0; i < times; i++) str += append;
         return str;
     }
 }

@@ -72,6 +72,7 @@ public static class VentLogger
     public static void Old(string message, string? tag = null) => Log(LogLevel.Old, message, tag, Assembly.GetCallingAssembly());
     public static void Debug(string message, string? tag = null) => Log(LogLevel.Debug, message, tag, Assembly.GetCallingAssembly());
     public static void Info(string message, string? tag = null) => Log(LogLevel.Info, message, tag, Assembly.GetCallingAssembly());
+    public static void High(string message, string? tag = null) => Log(LogLevel.High, message, tag, Assembly.GetCallingAssembly());
     public static void Warn(string message, string? tag = null) => Log(LogLevel.Warn, message, tag, Assembly.GetCallingAssembly());
     public static void Error(string message, string? tag = null) => Log(LogLevel.Error, message, tag, Assembly.GetCallingAssembly());
     public static void Exception(Exception exception, string? message = "", string? tag = null) => Log(LogLevel.Error, message + exception, tag, Assembly.GetCallingAssembly());

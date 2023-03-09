@@ -13,6 +13,7 @@ using VentLib.Networking.Managers;
 using VentLib.Networking.RPC;
 using VentLib.Networking.RPC.Attributes;
 using VentLib.Options;
+using VentLib.Options.Announcement;
 using VentLib.Utilities;
 using VentLib.Utilities.Attributes;
 using VentLib.Version;
@@ -35,6 +36,8 @@ public static class Vents
     internal static readonly Dictionary<Assembly, string> AssemblyNames = new();
     internal static readonly Dictionary<Assembly, int[]?> BlockedReceivers = new();
     internal static readonly Dictionary<uint, PlayerControl> LastSenders = new();
+
+    internal static AnnouncementTab VentLibOptionTab = new("VentFramework", "By: Tealeaf");
     private static bool _initialized;
 
     public static ModRPC? FindRPC(uint callId, MethodInfo? targetMethod = null)
@@ -99,6 +102,7 @@ public static class Vents
     public static void Initialize()
     {
         if (_initialized) return;
+        AnnouncementOptionController.AddTab(VentLibOptionTab);
         
         var _ = Async.AUCWrapper;
         RootAssemby = Assembly.GetCallingAssembly();
