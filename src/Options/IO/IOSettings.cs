@@ -14,6 +14,7 @@ public class IOSettings
     public IOptionValueLoader OptionValueLoader { get; set; } = new OptionValueLoader();
 }
 
+//Allow, Default, Exception
 public enum ADEAnswer
 {
     Allow,

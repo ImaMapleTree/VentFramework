@@ -18,6 +18,12 @@ public class Optional<T>
         HasValue = item != null;
     }
 
+    public Optional(Optional<T> optional)
+    {
+        Item = optional.Item;
+        if (optional.Exists()) HasValue = true;
+    }
+
     public static Optional<T> Of(T? item)
     {
         return new Optional<T>(item);
@@ -36,7 +42,7 @@ public class Optional<T>
 
     public static Optional<T> From(Optional<T>? optional)
     {
-        return optional ?? Null();
+        return optional == null ? new Optional<T>() : new Optional<T>(optional);
     }
 
     public virtual bool Exists() => HasValue;
@@ -45,6 +51,8 @@ public class Optional<T>
 
     public Optional<TR> FlatMap<TR>(Func<T, Optional<TR>> mapFunc) => Exists() ? Optional<TR>.Of(mapFunc(Item!).Item ?? default) : Optional<TR>.Null();
 
+    public TR Transform<TR>(Func<T, TR> exists, Func<TR> otherwise) => Exists() ? exists(Item!) : otherwise();
+    
     public void Handle(Action<T> consumer, Action otherwise)
     {
         if (Exists()) consumer(Item!);

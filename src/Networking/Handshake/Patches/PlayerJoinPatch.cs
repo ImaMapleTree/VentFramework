@@ -28,8 +28,7 @@ internal static class PlayerJoinPatch
             {
                 if (!WaitSet.Contains(client.Id)) return;
                 Vents.LastSenders[versionCheck] = client.Character;
-                Vents.FindRPC(versionCheck, typeof(VersionCheck), nameof(VersionCheck.SendVersion))!
-                    .InvokeTrampoline(new NoVersion());
+                Vents.FindRPC(versionCheck, typeof(VersionCheck), nameof(VersionCheck.SendVersion))!.InvokeTrampoline(new NoVersion());
             }, vc.ResponseTimer);
         }, NetUtils.DeriveDelay(1.5f));
     }

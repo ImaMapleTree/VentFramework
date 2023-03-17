@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using VentLib.Logging;
+using VentLib.Utilities.Optionals;
 using Object = UnityEngine.Object;
 
 namespace VentLib.Utilities.Extensions;
@@ -65,6 +66,32 @@ public static class EnumerableExtensions
     {
         int i = 0;
         return source.Select(val => (i++, val));
+    }
+
+    /// <summary>
+    /// Transforms a sequence of <see cref="Optional{T}"/> elements into all existing elements
+    /// </summary>
+    /// <param name="source">A sequence of optional elements</param>
+    /// <typeparam name="TSource">The type of elements in the optional.</typeparam>
+    /// <returns>A new sequence containing only the existing elements from the original sequence.</returns>
+    /// <exception cref="ArgumentNullException">source is null</exception>
+    public static IEnumerable<TSource> Filter<TSource>(this IEnumerable<Optional<TSource>> source)
+    {
+        return source.Where(opt => opt.Exists()).Select(opt => opt.Get());
+    }
+
+    /// <summary>
+    /// Transforms a sequence of <see cref="Optional{T}"/> elements into all existing elements
+    /// </summary>
+    /// <param name="source">A sequence of optional elements</param>
+    /// <param name="transformer">A transform function to apply to each element.</param>
+    /// <typeparam name="TSource">The type of elements in the optional.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by tranformer.</typeparam>
+    /// <returns>A new sequence containing only the existing elements from the original sequence.</returns>
+    /// <exception cref="ArgumentNullException">source is null</exception>
+    public static IEnumerable<TResult> Filter<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, Optional<TResult>> transformer)
+    {
+        return source.Select(transformer).Where(opt => opt.Exists()).Select(opt => opt.Get());
     }
 
     /// <summary>
@@ -136,6 +163,47 @@ public static class EnumerableExtensions
         while (enumerator.MoveNext())
             action(enumerator.Current, i++);
         enumerator.Dispose();
+    }
+
+    /// <summary>
+    /// Returns an <see cref="Optional{T}"/> containing the first matching element of this sequence, or an empty optional of no such element exists.
+    /// </summary>
+    /// <param name="source">A sequence of values.</param>
+    /// <typeparam name="TSource">The type of elements of the source.</typeparam>
+    /// <returns>An <see cref="Optional{T}"/> containing the matching element, or an empty Optional otherwise.</returns>
+    /// <exception cref="ArgumentNullException">source or predicate functions are null.</exception>
+    public static Optional<TSource> FirstOrOptional<TSource>(this IEnumerable<TSource> source)
+    {
+        if (source == null) throw new ArgumentNullException(nameof(source));
+        try
+        {
+            return Optional<TSource>.NonNull(source.First());
+        }
+        catch (InvalidOperationException)
+        {
+            return Optional<TSource>.Null();
+        }
+    }
+    
+    /// <summary>
+    /// Returns an <see cref="Optional{T}"/> containing the first matching element of this sequence, or an empty optional of no such element exists.
+    /// </summary>
+    /// <param name="source">A sequence of values.</param>
+    /// <param name="predicate">A function to test each element for a condition.</param>
+    /// <typeparam name="TSource">The type of elements of the source.</typeparam>
+    /// <returns>An <see cref="Optional{T}"/> containing the matching element, or an empty Optional otherwise.</returns>
+    /// <exception cref="ArgumentNullException">source or predicate functions are null.</exception>
+    public static Optional<TSource> FirstOrOptional<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
+    {
+        if (source == null) throw new ArgumentNullException(nameof(source));
+        try
+        {
+            return Optional<TSource>.NonNull(source.First(predicate));
+        }
+        catch (InvalidOperationException)
+        {
+            return Optional<TSource>.Null();
+        }
     }
 
     public static IEnumerable<TSource> Sorted<TSource, TComparable>(this IEnumerable<TSource> source, Func<TSource, TComparable> sortMapper) where TComparable : IComparable<TComparable>

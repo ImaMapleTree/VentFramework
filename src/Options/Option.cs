@@ -147,6 +147,11 @@ public class Option: IRpcSendable<Option>
         return index;
     }
 
+    public void NotifySubscribers(IOptionEvent @event)
+    {
+        EventHandlers.ForEach(eh => eh(@event));
+    }
+
     public Option Read(MessageReader reader)
     {
         string qualifier = reader.ReadString();

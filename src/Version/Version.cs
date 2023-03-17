@@ -1,6 +1,7 @@
 using System;
 using HarmonyLib;
 using Hazel;
+using VentLib.Logging;
 using VentLib.Networking.Interfaces;
 using VentLib.Networking.Managers;
 using VentLib.Utilities;
@@ -19,6 +20,7 @@ public abstract class Version: IRpcSendable<Version>
     private static Version ReadStatic(MessageReader reader)
     {
         VersionType type = (VersionType)reader.ReadByte();
+        VentLogger.Trace($"Version Type: {type}", "VersionHandshake");
         switch (type)
         {
             case VersionType.None:
@@ -51,6 +53,7 @@ public abstract class Version: IRpcSendable<Version>
     {
         VersionType type = this switch
         {
+            NoVersion => 0,
             GitVersion => VersionType.Git,
             AssemblyVersion => VersionType.Assembly,
             _ => VersionType.Custom
