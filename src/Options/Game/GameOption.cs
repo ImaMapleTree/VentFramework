@@ -53,7 +53,7 @@ public class GameOption : Option
         Children.Cast<GameOption>().ForEach(child => child.HideMembers());
     }
 
-    private void Increment()
+    public void Increment()
     {
         Optional<object> oldValue = Value.Map(v => v.Value);
 
@@ -66,7 +66,7 @@ public class GameOption : Option
         EventHandlers.ForEach(eh => eh(incrementEvent));
     }
 
-    private void Decrement()
+    public void Decrement()
     {
         Optional<object> oldValue = Value.Map(v => v.Value);
         

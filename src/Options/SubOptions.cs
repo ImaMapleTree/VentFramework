@@ -9,7 +9,7 @@ public class SubOptions : List<Option>
 
     public void SetPredicate(Func<object, bool> predicate)
     {
-        this.Predicate = predicate;
+        Predicate = predicate;
     }
 
     public bool Matches(object value) => Predicate(value);

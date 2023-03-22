@@ -72,7 +72,7 @@ public class Option: IRpcSendable<Option>
     {
         Index = Optional<int>.NonNull(Values.IndexOf(value));
         if (Index.Get() == -1) Index = Optional<int>.NonNull(DefaultIndex);
-        Optional<object> oldValue = this.Value.Map(v => v.Value);
+        Optional<object> oldValue = Value.Map(v => v.Value);
         
         Value = Optional<OptionValue>.Of(value);
         
@@ -80,7 +80,7 @@ public class Option: IRpcSendable<Option>
         EventHandlers.ForEach(eh => eh(optionValueEvent));
     }
 
-    internal void SetValue(int index, bool triggerEvent = true)
+    public void SetValue(int index, bool triggerEvent = true)
     {
         Index = Optional<int>.NonNull(EnforceIndexConstraint(index));
         Optional<object> oldValue = Value.Map(v => v.Value);

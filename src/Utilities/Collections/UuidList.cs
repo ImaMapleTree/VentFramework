@@ -49,11 +49,7 @@ public class UuidList<T>: IEnumerable<T>
 
     public bool IsReadOnly => false;
 
-    public T? Get(uint uuid)
-    {
-        PhantomEntry entry = items.FirstOrDefault(pe => pe.ID == uuid);
-        return entry.ID == uint.MaxValue ? default : entry.Value;
-    }
+    public T Get(uint uuid) => items.First(pe => pe.ID == uuid).Value;
 
     public int IndexOf(T item) => items.FindIndex(pe => Equals(pe.Value, item));
 

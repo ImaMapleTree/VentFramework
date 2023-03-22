@@ -19,7 +19,7 @@ public class RpcV2
     private bool requireHost;
 
     private readonly List<(object, WriteType)> writes = new();
-    private readonly SendOption sendOption = SendOption.Reliable;
+    private SendOption sendOption = SendOption.Reliable;
 
     public static uint GetHostNetId()
     {
@@ -28,46 +28,48 @@ public class RpcV2
         return host == null ? 0 : host.NetId;
     }
 
-    public static RpcV2 Standard(byte netId, byte callId)
+    public static RpcV2 Standard(byte netId, byte callId, SendOption sendOption = SendOption.Reliable)
     {
         return new RpcV2
         {
             netId = netId,
             callId = callId,
-            immediate = false
+            immediate = false,
+            sendOption = sendOption
         };
     }
 
-    public static RpcV2 Immediate(uint netId, RpcCalls call) => RpcV2.Immediate(netId, (byte)call);
+    public static RpcV2 Immediate(uint netId, RpcCalls call, SendOption sendOption = SendOption.Reliable) => Immediate(netId, (byte)call, sendOption);
 
-    public static RpcV2 Immediate(uint netId, byte callId)
+    public static RpcV2 Immediate(uint netId, byte callId, SendOption sendOption = SendOption.Reliable)
     {
         return new RpcV2
         {
             netId = netId,
             callId = callId,
-            immediate = true
+            immediate = true,
+            sendOption = sendOption
         };
     }
 
-    public RpcV2 Write(bool value) => this.WriteAny(value);
-    public RpcV2 Write(byte value) => this.WriteAny(value);
-    public RpcV2 Write(float value) => this.WriteAny(value);
-    public RpcV2 Write(int value) => this.WriteAny(value);
-    public RpcV2 Write(sbyte value) => this.WriteAny(value);
-    public RpcV2 Write(string value) => this.WriteAny(value);
-    public RpcV2 Write(uint value) => this.WriteAny(value);
-    public RpcV2 Write(ulong value) => this.WriteAny(value);
-    public RpcV2 Write(ushort value) => this.WriteAny(value);
-    public RpcV2 Write(Vector2 vector) => this.WriteAny(vector, WriteType.Vector);
-    public RpcV2 Write(InnerNetObject value) => this.WriteAny(value, WriteType.NetObject);
-    public RpcV2 Write(IRpcWritable value) => this.WriteAny(value, WriteType.Rpcable);
-    public RpcV2 Write(IBatchSendable value) => this.WriteAny(value, WriteType.Rpcable);
-    public RpcV2 WritePacked(int value) => this.WriteAny(value, WriteType.Packed);
-    public RpcV2 WritePacked(uint value) => this.WriteAny(value, WriteType.Packed);
-    public RpcV2 WriteSerializable(object value) => this.WriteAny(value, WriteType.Serializable);
+    public RpcV2 Write(bool value) => WriteAny(value);
+    public RpcV2 Write(byte value) => WriteAny(value);
+    public RpcV2 Write(float value) => WriteAny(value);
+    public RpcV2 Write(int value) => WriteAny(value);
+    public RpcV2 Write(sbyte value) => WriteAny(value);
+    public RpcV2 Write(string value) => WriteAny(value);
+    public RpcV2 Write(uint value) => WriteAny(value);
+    public RpcV2 Write(ulong value) => WriteAny(value);
+    public RpcV2 Write(ushort value) => WriteAny(value);
+    public RpcV2 Write(Vector2 vector) => WriteAny(vector, WriteType.Vector);
+    public RpcV2 Write(InnerNetObject value) => WriteAny(value, WriteType.NetObject);
+    public RpcV2 Write(IRpcWritable value) => WriteAny(value, WriteType.Rpcable);
+    public RpcV2 Write(IBatchSendable value) => WriteAny(value, WriteType.Rpcable);
+    public RpcV2 WritePacked(int value) => WriteAny(value, WriteType.Packed);
+    public RpcV2 WritePacked(uint value) => WriteAny(value, WriteType.Packed);
+    public RpcV2 WriteSerializable(object value) => WriteAny(value, WriteType.Serializable);
 
-    public RpcV2 WriteOptions(IGameOptions options) => this.WriteAny(options, WriteType.Options);
+    public RpcV2 WriteOptions(IGameOptions options) => WriteAny(options, WriteType.Options);
 
     public RpcV2 RequireHost(bool requireHost)
     {
@@ -79,14 +81,14 @@ public class RpcV2
     {
         PlayerControl.AllPlayerControls.ToArray()
             .Where(pc => include.Contains(pc.GetClientId()))
-            .Do(pc => this.Send(pc.GetClientId()));
+            .Do(pc => Send(pc.GetClientId()));
     }
 
     public void SendExclusive(params int[] exclude)
     {
         PlayerControl.AllPlayerControls.ToArray()
             .Where(pc => !exclude.Contains(pc.GetClientId()))
-            .Do(pc => this.Send(pc.GetClientId()));
+            .Do(pc => Send(pc.GetClientId()));
     }
 
     public void SendToHost()

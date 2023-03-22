@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 namespace VentLib.Utilities.Extensions;
@@ -74,4 +75,14 @@ public static class UnityObjectExtensions
     }
 
     public static string TypeName(this Object obj) => obj.GetIl2CppType().FullName;
+
+    public static T FindChild<T>(this MonoBehaviour obj, string name) where T: Object
+    {
+        return obj.GetComponentsInChildren<T>().First(c => c.name == name);
+    }
+    
+    public static T FindChild<T>(this GameObject obj, string name) where T: Object
+    {
+        return obj.GetComponentsInChildren<T>().First(c => c.name == name);
+    }
 }
