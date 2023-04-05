@@ -32,4 +32,9 @@ public static class FileExtensions
     {
         return new FileInfo(Path.Join(directory.FullName, path));
     }
+    
+    public static DirectoryInfo GetDirectory(this DirectoryInfo directory, string path)
+    {
+        return new DirectoryInfo(Path.Join(directory.FullName, path));
+    }
 }

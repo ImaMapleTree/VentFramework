@@ -9,7 +9,7 @@ namespace VentLib.Options.Game.Patches;
 [HarmonyPatch(typeof(GameOptionsMenu), nameof(GameOptionsMenu.Start))]
 internal static class OptionOpenPatch
 {
-    private static UnityOptional<StringOption> template = UnityOptional<StringOption>.Null();
+    public static UnityOptional<StringOption> template = UnityOptional<StringOption>.Null();
 
     internal static void Postfix(GameOptionsMenu __instance)
     {

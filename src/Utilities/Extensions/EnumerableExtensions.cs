@@ -206,7 +206,7 @@ public static class EnumerableExtensions
         }
     }
 
-    public static IEnumerable<TSource> Sorted<TSource, TComparable>(this IEnumerable<TSource> source, Func<TSource, TComparable> sortMapper) where TComparable : IComparable<TComparable>
+    public static IEnumerable<TSource> Sorted<TSource, TComparable>(this IEnumerable<TSource> source, Func<TSource, TComparable> sortMapper) where TComparable : IComparable
     {
         (TSource, TComparable)[] arr = source.Select(element => (element, sortMapper(element))).ToArray();
         Sort(arr, 0, arr.Length - 1);
@@ -225,7 +225,7 @@ public static class EnumerableExtensions
     
     
     // A utility function to swap two elements
-    private static void Swap<T, TComparable>(IList<(T ,TComparable)> list, int i, int j) where TComparable: IComparable<TComparable>
+    private static void Swap<T, TComparable>(IList<(T ,TComparable)> list, int i, int j) where TComparable: IComparable
     {
         (list[i], list[j]) = (list[j], list[i]);
     }
@@ -235,7 +235,7 @@ public static class EnumerableExtensions
          array, and places all smaller (smaller than pivot)
          to left of pivot and all greater elements to right
          of pivot */
-    static int Partition<T, TComparable>(IList<(T, TComparable)> arr, int low, int high) where TComparable: IComparable<TComparable>
+    static int Partition<T, TComparable>(IList<(T, TComparable)> arr, int low, int high) where TComparable: IComparable
     {
  
         // pivot
@@ -266,7 +266,7 @@ public static class EnumerableExtensions
                 low --> Starting index,
                 high --> Ending index
        */
-    static void Sort<T, TComparable>(IList<(T, TComparable)> arr, int low, int high) where TComparable: IComparable<TComparable>
+    static void Sort<T, TComparable>(IList<(T, TComparable)> arr, int low, int high) where TComparable: IComparable
     {
         if (low >= high) return;
         // pi is partitioning index, arr[p]

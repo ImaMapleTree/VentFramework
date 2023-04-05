@@ -44,6 +44,15 @@ public class UuidList<T>: IEnumerable<T>
         PhantomEntry entry = items.FirstOrDefault(pe => pe.ID == uuid);
         return entry.ID != uint.MaxValue && items.Remove(entry);
     }
+    
+    
+    public T? RemoveItem(uint uuid)
+    {
+        PhantomEntry entry = items.FirstOrDefault(pe => pe.ID == uuid);
+        T? item = entry.ID == uint.MaxValue ? default : entry.Value;
+        Remove(uuid);
+        return item;
+    }
 
     public int Count => items.Count;
 

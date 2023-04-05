@@ -40,7 +40,7 @@ public class Async
     {
         AUCWrapper.StartCoroutine(CoroutineWrapper(producer, consumer));
     }
-    
+
     /// <summary>
     /// Runs an anonymous function on another thread, discarding the return result. Threads often times do not
     /// play nicely with Unity-Runtime objects so if you're running into 0xC0000005 issues use Execute instead.
@@ -86,9 +86,11 @@ public class Async
     /// <param name="action">Action to run</param>
     /// <param name="delay">Delay to wait until running</param>
     /// <param name="repeat">If the action should be ran repeatedly</param>
-    public static void Schedule(Action action, float delay, bool repeat = false)
+    /// <param name="guaranteeMainThread">Guarantees task will be ran on the main thread, defaults to false as this option creates some overhead and delay</param>
+    public static void Schedule(Action action, float delay, bool repeat = false, bool guaranteeMainThread = false)
     {
-        AUCWrapper.StartCoroutine(CoroutineWrapper(action, delay, repeat));
+        if (guaranteeMainThread) MainThreadAnchor.ExecuteOnMainThread(() => AUCWrapper.StartCoroutine(CoroutineWrapper(action, delay, repeat)));
+        else AUCWrapper.StartCoroutine(CoroutineWrapper(action, delay, repeat));
     }
 
     /// <summary>
@@ -98,10 +100,12 @@ public class Async
     /// <param name="consumer">Consumer function to be called once the producer function completes</param>
     /// <param name="delay">Delay to wait until running</param>
     /// <param name="repeat">If the function should be ran repeatedly</param>
+    /// <param name="guaranteeMainThread">Guarantees task will be ran on the main thread, defaults to false as this option creates some overhead and delay</param>
     /// <typeparam name="T">Producer return type</typeparam>
-    public static void Schedule<T>(Func<T> producer, Action<T> consumer, float delay, bool repeat = false)
+    public static void Schedule<T>(Func<T> producer, Action<T> consumer, float delay, bool repeat = false, bool guaranteeMainThread = false)
     {
-        AUCWrapper.StartCoroutine(CoroutineWrapper(producer, consumer, delay, repeat));
+        if (guaranteeMainThread) MainThreadAnchor.ExecuteOnMainThread(() => AUCWrapper.StartCoroutine(CoroutineWrapper(producer, consumer, delay, repeat)));
+        else AUCWrapper.StartCoroutine(CoroutineWrapper(producer, consumer, delay, repeat));
     }
     
     /// <summary>

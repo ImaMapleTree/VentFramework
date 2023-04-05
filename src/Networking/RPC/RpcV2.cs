@@ -182,6 +182,16 @@ public class RpcV2
     public void Send(int clientId = -1)
     {
         if (requireHost && !AmongUsClient.Instance.AmHost) return;
+
+        new RpcMeta {
+            CallId = callId,
+            Immediate = immediate,
+            NetId = netId,
+            Recipient = clientId,
+            RequiresHost = requireHost,
+            SendOption = sendOption
+        }.Notify();
+        
         MessageWriter writer = !immediate
             ? AmongUsClient.Instance.StartRpc(netId, callId, sendOption)
             : AmongUsClient.Instance.StartRpcImmediately(netId, callId, sendOption, clientId);
@@ -212,15 +222,15 @@ public class RpcV2
         writes.Add((value, writeType));
         return this;
     }
+}
 
-    private enum WriteType: byte
-    {
-        Normal,
-        Packed,
-        Rpcable,
-        NetObject,
-        Options,
-        Vector,
-        Serializable
-    }
+public enum WriteType: byte
+{
+    Normal,
+    Packed,
+    Rpcable,
+    NetObject,
+    Options,
+    Vector,
+    Serializable
 }

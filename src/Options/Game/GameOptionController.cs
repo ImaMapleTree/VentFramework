@@ -5,6 +5,7 @@ using VentLib.Logging;
 using VentLib.Options.Game.Events;
 using VentLib.Options.Game.Impl;
 using VentLib.Options.Game.Interfaces;
+using VentLib.Options.Game.Patches;
 using VentLib.Options.Game.Tabs;
 using VentLib.Utilities.Attributes;
 using VentLib.Utilities.Collections;
@@ -119,7 +120,7 @@ public static class GameOptionController
     {
         option.Behaviour.IfNotPresent(() =>
         {
-            var template = Object.FindObjectsOfType<StringOption>().LastOrDefault();
+            var template = Object.FindObjectsOfType<StringOption>().LastOrDefault(OptionOpenPatch.template.Map(Object.Instantiate).OrElse(null!));
             if (template == null) throw new NullReferenceException("Template not found during ValidateOptionBehaviour");
             
             string name = template.name;
