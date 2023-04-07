@@ -120,7 +120,7 @@ public static class GameOptionController
     {
         option.Behaviour.IfNotPresent(() =>
         {
-            var template = Object.FindObjectsOfType<StringOption>().LastOrDefault(OptionOpenPatch.template.Map(Object.Instantiate).OrElse(null!));
+            var template = OptionOpenPatch.template.OrElse(null!);
             if (template == null) throw new NullReferenceException("Template not found during ValidateOptionBehaviour");
             
             string name = template.name;

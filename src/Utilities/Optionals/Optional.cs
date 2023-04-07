@@ -47,7 +47,7 @@ public class Optional<T>
 
     public virtual bool Exists() => HasValue;
 
-    public Optional<TR> Map<TR>(Func<T, TR> mapFunc) => new(Exists() ? mapFunc(Item!) : default);
+    public Optional<TR> Map<TR>(Func<T, TR> mapFunc) => new(Exists() ? mapFunc(Item!) : default) { HasValue = HasValue };
 
     public Optional<TR> FlatMap<TR>(Func<T, Optional<TR>> mapFunc) => Exists() ? Optional<TR>.Of(mapFunc(Item!).Item ?? default) : Optional<TR>.Null();
 

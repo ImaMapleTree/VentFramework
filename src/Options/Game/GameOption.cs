@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using VentLib.Options.Game.Events;
 using VentLib.Options.Game.Interfaces;
-using VentLib.Options.Game.Tabs;
 using VentLib.Utilities;
 using VentLib.Utilities.Extensions;
 using VentLib.Utilities.Optionals;
