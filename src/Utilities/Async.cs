@@ -89,7 +89,7 @@ public class Async
     /// <param name="guaranteeMainThread">Guarantees task will be ran on the main thread, defaults to false as this option creates some overhead and delay</param>
     public static void Schedule(Action action, float delay, bool repeat = false, bool guaranteeMainThread = false)
     {
-        if (guaranteeMainThread) MainThreadAnchor.ExecuteOnMainThread(() => AUCWrapper.StartCoroutine(CoroutineWrapper(action, delay, repeat)));
+        if (guaranteeMainThread) MainThreadAnchor.ScheduleOnMainThread(() => AUCWrapper.StartCoroutine(CoroutineWrapper(action, delay, repeat)));
         else AUCWrapper.StartCoroutine(CoroutineWrapper(action, delay, repeat));
     }
 
@@ -104,7 +104,7 @@ public class Async
     /// <typeparam name="T">Producer return type</typeparam>
     public static void Schedule<T>(Func<T> producer, Action<T> consumer, float delay, bool repeat = false, bool guaranteeMainThread = false)
     {
-        if (guaranteeMainThread) MainThreadAnchor.ExecuteOnMainThread(() => AUCWrapper.StartCoroutine(CoroutineWrapper(producer, consumer, delay, repeat)));
+        if (guaranteeMainThread) MainThreadAnchor.ScheduleOnMainThread(() => AUCWrapper.StartCoroutine(CoroutineWrapper(producer, consumer, delay, repeat)));
         else AUCWrapper.StartCoroutine(CoroutineWrapper(producer, consumer, delay, repeat));
     }
     

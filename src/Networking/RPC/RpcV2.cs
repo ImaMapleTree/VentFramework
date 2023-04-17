@@ -28,7 +28,9 @@ public class RpcV2
         return host == null ? 0 : host.NetId;
     }
 
-    public static RpcV2 Standard(byte netId, byte callId, SendOption sendOption = SendOption.Reliable)
+    public static RpcV2 Standard(uint netId, RpcCalls callId, SendOption sendOption = SendOption.Reliable) => Standard(netId, (byte)callId, sendOption);
+    
+    public static RpcV2 Standard(uint netId, byte callId, SendOption sendOption = SendOption.Reliable)
     {
         return new RpcV2
         {

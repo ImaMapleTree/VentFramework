@@ -54,6 +54,8 @@ public class UuidList<T>: IEnumerable<T>
         return item;
     }
 
+    public int RemoveAll(Func<T, bool> predicate) => items.RemoveAll(pi => pi.ID != uint.MaxValue && predicate(pi.Value));
+
     public int Count => items.Count;
 
     public bool IsReadOnly => false;

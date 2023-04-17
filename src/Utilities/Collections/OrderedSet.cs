@@ -9,6 +9,16 @@ public class OrderedSet<T> : ISet<T>, IList<T>
     private HashSet<T> backingSet = new();
     private List<T> backingList = new();
 
+    public OrderedSet()
+    {
+    }
+
+    public OrderedSet(ICollection<T> collection)
+    {
+        backingSet = new HashSet<T>(collection);
+        backingList = collection.Distinct().ToList();
+    }
+
     public IEnumerator<T> GetEnumerator()
     {
         return backingList.GetEnumerator();
