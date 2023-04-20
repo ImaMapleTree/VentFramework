@@ -118,7 +118,7 @@ public class Localizer
         return Languages.Select(l => l.Value).Where(lang =>
         {
             if (qualifier != null)
-                return lang.Translate(qualifier, null!, TranslationCreationOption.NothingIfNull) != null!;
+                return lang.Translate(qualifier, null!, TranslationCreationOption.NothingIfNull) == translation;
             return FlattenDictionaryValues(lang.Translations).Contains(translation);
         }).ToArray();
     }
