@@ -6,6 +6,8 @@ public static class ColorUtils
 {
     public static string Colorize(this Color color, string str) => ColorString(color, str);
     
+    public static string Colorize(this Color color, char ch) => ColorString(color, ch.ToString());
+    
     public static string ToText(this Color color)
     {
         return $"<color={color.ToHex()}>";

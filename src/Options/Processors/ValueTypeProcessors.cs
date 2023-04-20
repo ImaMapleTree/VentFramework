@@ -38,12 +38,14 @@ public class ValueTypeProcessors
         _typeProcessors[typeof(T)] = typeProcessor;
     }
 
-    internal static string WriteToString(object value)
+    public static string WriteToString(object value)
     {
         IValueTypeProcessor? processor = _typeProcessors.GetValueOrDefault(value.GetType());
         if (processor == null) throw new NullReferenceException($"No Value Processor exists for type {value.GetType()}");
         return processor.Write(value, new MonoLine()).Content;
     }
+
+    public static object ReadFromLine(string line, Type expectedType) => ReadFromLine(new MonoLine(line), expectedType);
 
     internal static object ReadFromLine(MonoLine line, Type expectedType)
     {

@@ -14,7 +14,7 @@ namespace VentLib.Logging;
 
 public static class VentLogger
 {
-    public static HookedWriter? OutputStream;
+    public static StreamWriter? OutputStream;
     private static readonly bool CreateNewLog;
     private static int _logLevel;
     private static int _fileLevel;
@@ -60,9 +60,18 @@ public static class VentLogger
         DirectoryInfo logDirectory = new DirectoryInfo(logDirectoryOption.GetValue<string>());
         if (!logDirectory.Exists) logDirectory.Create();
         string fullFilename = CreateFullFilename(logDirectory);
-        OutputStream = new HookedWriter(File.Open(fullFilename, FileMode.Create));
-        OutputStream.AutoFlush = true;
         
+        try
+        {
+            OutputStream = new HookedWriter(File.Open(fullFilename, FileMode.Create));
+            OutputStream.AutoFlush = true;
+        }
+        catch
+        {
+            OutputStream = new StreamWriter(System.Console.OpenStandardOutput());
+            OutputStream.AutoFlush = true;
+        }
+
         object driver = typeof(ConsoleManager).GetProperty("Driver", AccessFlags.StaticAccessFlags)!.GetValue(null)!;
         driver.GetType().GetProperty("StandardOut", AccessFlags.InstanceAccessFlags)!.SetValue(driver, OutputStream, AccessFlags.InstanceAccessFlags, null, null, null);
         driver.GetType().GetProperty("ConsoleOut", AccessFlags.InstanceAccessFlags)!.SetValue(driver, OutputStream, AccessFlags.InstanceAccessFlags, null, null, null);
@@ -104,9 +113,9 @@ public static class VentLogger
         
         string fullMessage = $"[{levelPrefix}{sourcePrefix}][{DateTime.Now:hh:mm:ss}]{tagPrefix} {message}";
 
-        if (level.Level < _logLevel && level.Level >= _fileLevel)
+        if (level.Level < _logLevel && level.Level >= _fileLevel && OutputStream is HookedWriter hookedWriter)
         {
-            OutputStream?.WriteLineToFile(fullMessage);
+            hookedWriter.WriteLineToFile(fullMessage);
             return;
         }
 

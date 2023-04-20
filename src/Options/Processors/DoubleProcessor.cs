@@ -6,7 +6,7 @@ namespace VentLib.Options.Processors;
 
 internal class DoubleProcessor : IValueTypeProcessor<double>
 {
-    public double Read(MonoLine input) => double.Parse(input.Content);
+    public double Read(MonoLine input) => double.Parse(input.Content, CultureInfo.InvariantCulture);
 
     public MonoLine Write(double value, MonoLine output) => output.Of(value.ToString(CultureInfo.InvariantCulture));
 }

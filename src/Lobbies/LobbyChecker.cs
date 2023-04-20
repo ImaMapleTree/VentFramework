@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using VentLib.Lobbies.Patches;
 using VentLib.Logging;
@@ -16,6 +17,7 @@ public class LobbyChecker
     private static string LobbyEndpoint = "http://18.219.112.36:8080/lobbies";
     private static readonly HttpClient Client = new();
     private static Dictionary<int, ModdedLobby> _moddedLobbies = new();
+    private static Regex specialCharacterRegex = new("[^A-Za-z-]*");
 
     internal static void POSTModdedLobby(string gameId, string host)
     {
@@ -26,14 +28,14 @@ public class LobbyChecker
         Version.Version version = VersionControl.Instance.Version ?? new NoVersion();
         requestMessage.Headers.Add("version", version.ToSimpleName());
         requestMessage.Headers.Add("mod-name", Vents.AssemblyNames[Vents.RootAssemby]);
-        requestMessage.Headers.Add("host", host);
+        requestMessage.Headers.Add("host", specialCharacterRegex.Replace(host.Replace(" ", "-"), ""));
         Client.SendAsync(requestMessage);
     }
 
     internal static void GETModdedLobbies()
     {
         Task<HttpResponseMessage> response = Client.GetAsync(LobbyEndpoint);
-        SyncTaskWaiter waiter = new SyncTaskWaiter(response);
+        SyncTaskWaiter waiter = new(response);
         Async.Schedule(() => WaitForResponse(waiter, 0), 0.25f);
 
     }

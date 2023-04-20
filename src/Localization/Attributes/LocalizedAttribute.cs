@@ -1,50 +1,77 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using HarmonyLib;
+using VentLib.Utilities;
+using VentLib.Utilities.Extensions;
 
 namespace VentLib.Localization.Attributes;
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Parameter)]
-public class LocalizedAttribute: Attribute, IComparable<LocalizedAttribute>
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Class)]
+public class LocalizedAttribute : Attribute
 {
-    internal static Dictionary<LocalizedAttribute, ReflectionObject> Attributes = new();
+    internal static Dictionary<Type, string> ClassQualifiers = new();
 
-    public string? Key;
-    public string? Group;
-    public string? Subgroup;
+    public string Qualifier;
+    public bool IgnoreNesting;
 
-    internal ReflectionObject? Source;
-    internal Func<string?>? GroupSupplier;
-
-    public LocalizedAttribute() { }
-
-    public LocalizedAttribute(string key, string? group = null)
+    internal Type DeclaringType = null!;
+    
+    public LocalizedAttribute(string qualifier, bool ignoreNesting = false)
     {
-        Key = key;
-        Group = group;
+        Qualifier = qualifier;
+        IgnoreNesting = ignoreNesting;
     }
 
-    internal string GetPath()
+    public void Register(Localizer localizer, Type type)
     {
-        string? group = GroupSupplier != null 
-            ? GroupSupplier() ?? Group 
-            : Group;
+        Register(localizer, type, new[] { this });
+    }
+
+    public void Register(Localizer localizer, Type type, LocalizedAttribute[] parentAttributes)
+    {
+        ClassQualifiers[type] = Qualifier;
+        DeclaringType = type;
         
-        string subgroup = Subgroup != null ? "." + Subgroup : "";
-        string key = Key != null ? "." + Key : "";
-
-        return $"{group}{subgroup}{key}".TrimStart('.');
-        /*if (Key == null && group == null) throw new FormatException($"Invalid Attribute for: {Source?.Object}. Localization Attribute must contain either a key or value");
-        if (Key == null) return group + subgroup;
-        return group == null ? Key : $"{group}{subgroup}.{Key}";*/
+        type.GetNestedTypes(AccessFlags.AllAccessFlags)
+            .Where(t => t.GetCustomAttribute<LocalizedAttribute>() != null)
+            .ForEach(t =>
+            {
+                LocalizedAttribute attribute = t.GetCustomAttribute<LocalizedAttribute>()!;
+                attribute.Register(localizer, t, parentAttributes.AddItem(attribute).ToArray());
+            });
+        
+        type.GetFields(AccessFlags.StaticAccessFlags)
+            .Where(field => field.GetCustomAttribute<LocalizedAttribute>() != null)
+            .ForEach(field => field.GetCustomAttribute<LocalizedAttribute>()!.Inject(localizer, parentAttributes, field));
     }
 
-    public int CompareTo(LocalizedAttribute? other)
+    public void Inject(Localizer localizer, LocalizedAttribute[] parentAttributes, FieldInfo containingField)
     {
-        if (ReferenceEquals(this, other)) return 0;
-        if (ReferenceEquals(null, other)) return 1;
-        var groupComparison = string.Compare(Group, other.Group, StringComparison.Ordinal);
-        if (groupComparison != 0) return groupComparison;
-        var keyComparison = string.Compare(Key, other.Key, StringComparison.Ordinal);
-        return keyComparison;
+        string qualifier = "";
+        foreach (LocalizedAttribute parentAttribute in parentAttributes)
+        {
+            string classQualifier = ClassQualifiers.GetValueOrDefault(parentAttribute.DeclaringType, "");
+            
+            if (qualifier == "" || parentAttribute.IgnoreNesting)
+                qualifier = classQualifier;
+            else if (classQualifier != "")
+                qualifier = qualifier + "." + classQualifier;
+            
+        }
+
+        LocalizedAttribute fieldAttribute = containingField.GetCustomAttribute<LocalizedAttribute>()!;
+        if (fieldAttribute.IgnoreNesting) qualifier = fieldAttribute.Qualifier;
+        else qualifier = qualifier + "." + fieldAttribute.Qualifier;
+
+        if (qualifier.Contains("PingDisplay"))
+        {
+            bool b = true;
+        }
+        
+        string? defaultValue = containingField.GetValue(null) as string;
+        string translation = localizer.Translate(qualifier, defaultValue ?? $"<{qualifier}>", false);
+        containingField.SetValue(null, translation);
     }
 }

@@ -17,5 +17,5 @@ public static class NetUtils
     }
     
     // ReSharper disable once CompareOfFloatsByEqualityOperator
-    public static float DeriveDelay(float flatDelay = float.MinValue) => AmongUsClient.Instance.Ping * 0.0003f + (flatDelay == float.MinValue ? 0.4f : flatDelay);
+    public static float DeriveDelay(float flatDelay, float multiplier = 0.0003f) => AmongUsClient.Instance.Ping * multiplier + flatDelay;
 }

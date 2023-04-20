@@ -44,6 +44,23 @@ public class Profiler
             return methodTimings.Add((DateTime.Now, profileInfo));
         }
 
+        public Sample StartQ(string? name = null)
+        {
+            if (!profiler.IsActive) return new Sample(profiler, uint.MaxValue);
+            MethodBase? callingMethod = new StackFrame(1).GetMethod();
+            if (callingMethod == null) return new Sample(profiler, uint.MaxValue);
+            name ??= callingMethod.Name;
+            ProfileInfo profileInfo = profiler.profiledMethods.GetOrCompute((callingMethod, name), () => new ProfileInfo(name, callingMethod));
+            return new Sample(profiler, methodTimings.Add((DateTime.Now, profileInfo)));
+        }
+
+        public void Sample(Action action, string name)
+        {
+            uint id = profiler.Sampler.Start(name);
+            action();
+            profiler.Sampler.Stop(id);
+        }
+
         public void Stop(uint id, string? name = null)
         {
             if (!profiler.IsActive || id == uint.MaxValue) return;
@@ -63,6 +80,22 @@ public class Profiler
             methodTimings.Remove(id);
         }
         
+    }
+
+    public class Sample
+    {
+        public Profiler Profiler { get; }
+        public uint Id { get; }
+
+        internal Sample(Profiler profiler, uint id)
+        {
+            Profiler = profiler;
+            Id = id;
+        }
+
+        public void Stop(string? name = null) => Profiler.Sampler.Stop(Id, name);
+
+        public void Discard() => Profiler.Sampler.Discard(Id);
     }
 
     public void SetActive(bool active)

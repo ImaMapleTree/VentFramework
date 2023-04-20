@@ -34,10 +34,10 @@ public class OptionBuilder : IOptionBuilder<OptionBuilder>
         return this;
     }
 
-    public OptionBuilder LocaleName(string keyPath)
+    public OptionBuilder LocaleName(string qualifier)
     {
-        Option.name = Localizer.Get(keyPath, Assembly.GetCallingAssembly().GetName().Name);
-        Option.Key ??= keyPath;
+        Option.name = Localizer.Get(Assembly.GetCallingAssembly()).Translate(qualifier);
+        Option.Key ??= qualifier;
         return this;
     }
 

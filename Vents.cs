@@ -9,13 +9,12 @@ using VentLib.Commands;
 using VentLib.Localization;
 using VentLib.Logging;
 using VentLib.Networking.Interfaces;
-using VentLib.Networking.Managers;
 using VentLib.Networking.RPC;
 using VentLib.Networking.RPC.Attributes;
 using VentLib.Options;
-using VentLib.Options.Announcement;
 using VentLib.Utilities;
 using VentLib.Utilities.Attributes;
+using VentLib.Utilities.Harmony;
 using VentLib.Version;
 
 namespace VentLib;
@@ -36,8 +35,7 @@ public static class Vents
     internal static readonly Dictionary<Assembly, string> AssemblyNames = new();
     internal static readonly Dictionary<Assembly, int[]?> BlockedReceivers = new();
     internal static readonly Dictionary<uint, PlayerControl> LastSenders = new();
-
-    internal static AnnouncementTab VentLibOptionTab = new("VentFramework", "By: Tealeaf");
+    
     private static bool _initialized;
 
     public static ModRPC? FindRPC(uint callId, MethodInfo? targetMethod = null)
@@ -76,8 +74,8 @@ public static class Vents
             AssemblyNames.Add(assembly, assembly.GetName().Name!);
 
         LoadStatic.LoadStaticTypes(assembly);
-        if (localize)
-            Localizer.Load(assembly);
+        HarmonyQuickPatcher.ApplyHarmonyPatches(assembly);
+        if (localize) Localizer.Get(assembly);
         
         OptionManager.GetManager(assembly);
         CommandRunner.Register(assembly);
@@ -102,11 +100,10 @@ public static class Vents
     public static void Initialize()
     {
         if (_initialized) return;
-        AnnouncementOptionController.AddTab(VentLibOptionTab);
-        
+
         var _ = Async.AUCWrapper;
         RootAssemby = Assembly.GetCallingAssembly();
-        Localizer.Initialize();
+        /*Localizer.Initialize();*/
         IL2CPPChainloader.Instance.PluginLoad += (_, assembly, _) => Register(assembly, assembly == RootAssemby);
         Register(Assembly.GetExecutingAssembly());
         VentLogger.Fatal("Patching All");

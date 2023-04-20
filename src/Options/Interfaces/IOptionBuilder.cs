@@ -96,11 +96,11 @@ public interface IOptionBuilder<out T>: IOptionBuilder where T: IOptionBuilder
         return Description(description);
     }
 
-    public new T LocaleName(string keyPath);
+    public new T LocaleName(string qualifier);
 
-    IOptionBuilder IOptionBuilder.LocaleName(string keyPath)
+    IOptionBuilder IOptionBuilder.LocaleName(string qualifier)
     {
-        return LocaleName(keyPath);
+        return LocaleName(qualifier);
     }
 
     public new T IOSettings(Func<IOSettings, IOSettings> settings);
