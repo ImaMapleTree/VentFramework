@@ -55,7 +55,7 @@ public sealed class VanillaRoleTab : VanillaTab
         if (options.Count == 0) return returnList;
         var menu = innerMenu.Get();
         
-        _renderer.Render(options, menu.Children.Skip(1), GameOptionController.RenderOptions);
+        _renderer.Render(menu, options, menu.Children.Skip(1), GameOptionController.RenderOptions);
         
         return new List<GameOption>();
     }

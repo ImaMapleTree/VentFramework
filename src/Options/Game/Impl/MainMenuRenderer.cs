@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using VentLib.Logging;
 using VentLib.Options.Game.Interfaces;
 using VentLib.Utilities.Extensions;
 
@@ -7,8 +8,11 @@ namespace VentLib.Options.Game.Impl;
 
 public class MainMenuRenderer : IVanillaMenuRenderer
 {
-    public void Render(List<GameOption> customOptions, IEnumerable<OptionBehaviour> vanillaOptions, RenderOptions renderOptions)
+    private static float originalYBounds = -1f;
+    
+    public void Render(MonoBehaviour menu, List<GameOption> customOptions, IEnumerable<OptionBehaviour> vanillaOptions, RenderOptions renderOptions)
     {
+        int optionCount = customOptions.Count;
         if (customOptions.Count == 0) return;
         float offset = 2.35f;
         customOptions.ForEach(opt => CustomOptionRender(new GameOptionProperties(opt), opt.Level, ref offset));
@@ -21,6 +25,8 @@ public class MainMenuRenderer : IVanillaMenuRenderer
             opt.transform.localPosition = pos;
         });
 
+        if (originalYBounds < 0) originalYBounds = menu.GetComponentInParent<Scroller>().ContentYBounds.max;
+        menu.GetComponentInParent<Scroller>().ContentYBounds.max = originalYBounds + 0.5f * optionCount;
     }
     
     private void CustomOptionRender(GameOptionProperties properties, int level, ref float offset)
@@ -36,5 +42,7 @@ public class MainMenuRenderer : IVanillaMenuRenderer
         offset -= properties.Source.IsHeader ? 0.75f : 0.5f;
         properties.SetPosition(new Vector3(pos.x, offset, pos.z));
     }
+    
+    
     
 }

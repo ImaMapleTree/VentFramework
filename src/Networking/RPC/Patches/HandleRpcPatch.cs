@@ -1,7 +1,6 @@
 using HarmonyLib;
 using Hazel;
 using InnerNet;
-using VentLib.Networking.Managers;
 
 namespace VentLib.Networking.RPC.Patches;
 
@@ -10,6 +9,8 @@ public class HandleRpcPatch
 {
     public static bool Prefix(InnerNetObject __instance, [HarmonyArgument(0)] byte callId, [HarmonyArgument(1)] MessageReader reader)
     {
-        return RpcManager.HandleRpc(callId, reader);
+        if (callId is not (203 or 204)) return true;
+        RpcManager.HandleRpc(callId, reader);
+        return false;
     }
 }

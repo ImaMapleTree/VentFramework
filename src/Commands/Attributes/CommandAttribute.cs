@@ -44,7 +44,7 @@ public class CommandAttribute: Attribute
 
     internal void Generate(Assembly assembly)
     {
-        Aliases = _localeAliases == null ? _aliases : _aliases.AddRangeToArray(_localeAliases.SelectMany(a => Localizer.GetAll(a, assembly.GetName().Name)).ToArray());
+        Aliases = _localeAliases == null ? _aliases : _aliases.AddRangeToArray(_localeAliases.SelectMany(a => Localizer.Get(assembly).GetAllTranslations(a)).ToArray());
     }
 
     public override bool Equals(object? obj)

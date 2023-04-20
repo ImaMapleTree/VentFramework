@@ -36,10 +36,10 @@ public class GameOptionBuilder : IOptionBuilder<GameOptionBuilder>
         return this;
     }
 
-    public GameOptionBuilder LocaleName(string keyPath)
+    public GameOptionBuilder LocaleName(string qualifier)
     {
-        Option.name = Localizer.Get(keyPath, Assembly.GetCallingAssembly().GetName().Name);
-        Option.Key ??= keyPath;
+        Option.name = Localizer.Get(Assembly.GetCallingAssembly()).Translate(qualifier);
+        Option.Key ??= qualifier;
         return this;
     }
 

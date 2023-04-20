@@ -6,14 +6,13 @@ using InnerNet;
 using VentLib.Logging;
 using VentLib.Networking.Batches;
 using VentLib.Networking.Helpers;
-using VentLib.Networking.RPC;
 using VentLib.Networking.RPC.Attributes;
 using VentLib.Utilities;
 using VentLib.Utilities.Extensions;
 
-namespace VentLib.Networking.Managers;
+namespace VentLib.Networking.RPC;
 
-public static class RpcManager
+internal static class RpcManager
 {
     private static readonly Dictionary<uint, object[]> BatchArgumentStorage = new();
 
@@ -28,12 +27,12 @@ public static class RpcManager
         Vents.RpcBindings[rpc.CallId].Add(rpc);
     }
 
-    internal static bool HandleRpc(byte callId, MessageReader reader)
+    internal static void HandleRpc(byte callId, MessageReader reader)
     {
-        if (callId is not (203 or 204)) return true;
+        if (callId is not (203 or 204)) return;
         uint customId = reader.ReadUInt32();
         RpcActors actor = (RpcActors)reader.ReadByte();
-        if (!CanReceive(actor)) return true;
+        if (!CanReceive(actor)) return;
         uint senderId = reader.ReadPackedUInt32();
         
         PlayerControl? player = null;
@@ -43,24 +42,23 @@ public static class RpcManager
             if (player != null) Vents.LastSenders[customId] = player;
         }
 
-        if (player != null && player.PlayerId == PlayerControl.LocalPlayer.PlayerId) return true;
+        if (player != null && player.PlayerId == PlayerControl.LocalPlayer.PlayerId) return;
         string sender = "Client: " + (player == null ? "?" : player.GetClientId());
         string receiverType = AmongUsClient.Instance.AmHost ? "Host" : "NonHost";
         VentLogger.Info($"Custom RPC Received ({customId}) from \"{sender}\" as {receiverType}", "VentLib");
         if (!Vents.RpcBindings.TryGetValue(customId, out List<ModRPC>? rpcs))
         {
             VentLogger.Warn($"Received Unknown RPC: {customId}", "VentLib");
-            reader.Recycle();
-            return false;
+            return;
         }
 
-        if (rpcs.Count == 0) return true;
-        
+        if (rpcs.Count == 0) return;
+
 
         object[]? args = null;
         if (callId == 204)
         {
-            if (!HandleBatch(reader, rpcs[0], out object[] batchArgs)) return false;
+            if (!HandleBatch(reader, rpcs[0], out object[] batchArgs)) return;
             args = batchArgs;
         }
 
@@ -72,8 +70,6 @@ public static class RpcManager
             args ??= ParameterHelper.Cast(modRPC.Parameters, reader);
             modRPC.InvokeTrampoline(args);
         }
-
-        return true;
     }
 
     private static bool HandleBatch(MessageReader reader, ModRPC rpc, out object[] args)

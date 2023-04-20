@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HarmonyLib;
 
 namespace VentLib.Commands;
 
@@ -39,4 +40,6 @@ public struct CommandContext
             Source = Source
         };
     }
+
+    public string Join(string delimiter = " ") => Args.Join(delimiter: delimiter);
 }

@@ -56,7 +56,7 @@ public sealed class VanillaMainTab : VanillaTab
         var menu = innerMenu.Get();
         
         options.ForEach(opt => GameOptionController.ValidateOptionBehaviour(opt, false));
-        _renderer.Render(options, menu.Children.Skip(1), GameOptionController.RenderOptions);
+        _renderer.Render(menu, options, menu.Children.Skip(1), GameOptionController.RenderOptions);
         
         return new List<GameOption>();
     }
