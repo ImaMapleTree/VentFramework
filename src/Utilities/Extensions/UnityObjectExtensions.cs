@@ -1,5 +1,6 @@
 using System.Linq;
 using UnityEngine;
+using VentLib.Utilities.Optionals;
 
 namespace VentLib.Utilities.Extensions;
 
@@ -76,13 +77,23 @@ public static class UnityObjectExtensions
 
     public static string TypeName(this Object obj) => obj.GetIl2CppType().FullName;
 
-    public static T FindChild<T>(this MonoBehaviour obj, string name) where T: Object
+    public static T FindChild<T>(this MonoBehaviour obj, string name, bool includeInactive = false) where T: Object
     {
-        return obj.GetComponentsInChildren<T>().First(c => c.name == name);
+        return obj.GetComponentsInChildren<T>(includeInactive).First(c => c.name == name);
+    }
+
+    public static T FindChild<T>(this GameObject obj, string name, bool includeInactive = false) where T: Object
+    {
+        return obj.GetComponentsInChildren<T>(includeInactive).First(c => c.name == name);
     }
     
-    public static T FindChild<T>(this GameObject obj, string name) where T: Object
+    public static UnityOptional<T> FindChildOrEmpty<T>(this MonoBehaviour obj, string name, bool includeInactive = false) where T: Object
     {
-        return obj.GetComponentsInChildren<T>().First(c => c.name == name);
+        return new UnityOptional<T>(obj.GetComponentsInChildren<T>(includeInactive).FirstOrDefault(c => c.name == name));
+    }
+    
+    public static UnityOptional<T> FindChildOrEmpty<T>(this GameObject obj, string name, bool includeInactive = false) where T: Object
+    {
+        return new UnityOptional<T>(obj.GetComponentsInChildren<T>(includeInactive).FirstOrDefault(c => c.name == name));
     }
 }

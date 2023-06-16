@@ -15,6 +15,9 @@ public class GameOption : Option
 {
     public Color Color = Color.white;
     public bool IsHeader;
+    public bool IsTitle;
+    internal CustomOptional<GameOptionProperties> Properties = CustomOptional<GameOptionProperties>.Null();
+    
     public IGameOptionTab? Tab
     {
         get => tab;

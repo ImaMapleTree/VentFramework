@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using BepInEx.Unity.IL2CPP;
@@ -14,6 +15,7 @@ using VentLib.Networking.RPC.Attributes;
 using VentLib.Options;
 using VentLib.Utilities;
 using VentLib.Utilities.Attributes;
+using VentLib.Utilities.Extensions;
 using VentLib.Utilities.Harmony;
 using VentLib.Version;
 
@@ -22,14 +24,14 @@ namespace VentLib;
 //if the client has an unsupported addon it's rpcs get disabled completely CHECK!
 //if the client is missing an addon then the host's rpcs from that addon to that client get disabled
 
-public static class Vents
+public class Vents
 {
     public static readonly uint[] BuiltinRPCs = Enum.GetValues<VentCall>().Select(rpc => (uint)rpc).ToArray();
-    public static VersionControl VersionControl = new();
+    internal static VersionControl VersionControl { get; } = new();
     public static CommandRunner CommandRunner = new();
     
     internal static Assembly RootAssemby = null!;
-    internal static Harmony Harmony = new("me.tealeaf.VentLib");
+    internal static Harmony Harmony = new("com.tealeaf.VentLib");
     internal static readonly Dictionary<uint, List<ModRPC>> RpcBindings = new();
     internal static readonly Dictionary<Assembly, VentControlFlag> RegisteredAssemblies = new();
     internal static readonly Dictionary<Assembly, string> AssemblyNames = new();
@@ -38,6 +40,7 @@ public static class Vents
     
     private static bool _initialized;
 
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public static ModRPC? FindRPC(uint callId, MethodInfo? targetMethod = null)
     {
         if (!RpcBindings.TryGetValue(callId, out List<ModRPC>? RPCs))
@@ -49,6 +52,7 @@ public static class Vents
         return RPCs.FirstOrDefault(v => targetMethod == null || v.TargetMethod.Equals(targetMethod));
     }
     
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public static ModRPC? FindRPC(uint callId, Type declaringClass, string methodName, Type[]? parameters = null)
     {
         MethodInfo? method = AccessTools.Method(declaringClass, methodName, parameters);
@@ -65,20 +69,23 @@ public static class Vents
 
     public static PlayerControl? GetLastSender(uint rpcId) => LastSenders.GetValueOrDefault(rpcId);
 
-    public static void Register(Assembly assembly, bool localize = true)
+    public static bool Register(Assembly assembly, bool localize = true)
     {
         VentLogger.Info($"Registering {assembly.GetName().Name}");
-        if (RegisteredAssemblies.ContainsKey(assembly)) return;
+        if (RegisteredAssemblies.ContainsKey(assembly)) return false;
         RegisteredAssemblies.Add(assembly, VentControlFlag.AllowedReceiver | VentControlFlag.AllowedSender);
-        if (!AssemblyNames.ContainsKey(assembly))
-            AssemblyNames.Add(assembly, assembly.GetName().Name!);
+        AssemblyNames.TryAdd(assembly, assembly.GetName().Name!);
+        
+        RegisterInIl2CppAttribute.Register(assembly);
+
 
         LoadStatic.LoadStaticTypes(assembly);
         HarmonyQuickPatcher.ApplyHarmonyPatches(assembly);
         if (localize) Localizer.Get(assembly);
-        
+
         OptionManager.GetManager(assembly);
         CommandRunner.Register(assembly);
+
 
         var methods = assembly.GetTypes()
             .SelectMany(t => t.GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
@@ -95,18 +102,25 @@ public static class Vents
 
             RpcManager.Register(new ModRPC(attribute, method));
         }
+        
+        if (localize) Localizer.Localizers.Values.ForEach(locale =>
+        {
+            locale.Languages.Values.Where(lang => lang.Updated).ForEach(lang => lang.Dump(locale.Serializer));
+        });
+
+        return true;
     }
 
     public static void Initialize()
     {
         if (_initialized) return;
 
+        VentLogger.High($"Initializing VentFramework {Assembly.GetExecutingAssembly().GetName().Version!.ToString(4)} by Tealeaf");
+        
         var _ = Async.AUCWrapper;
         RootAssemby = Assembly.GetCallingAssembly();
-        /*Localizer.Initialize();*/
         IL2CPPChainloader.Instance.PluginLoad += (_, assembly, _) => Register(assembly, assembly == RootAssemby);
         Register(Assembly.GetExecutingAssembly());
-        VentLogger.Fatal("Patching All");
         Harmony.PatchAll(Assembly.GetExecutingAssembly());
         _initialized = true;
     }
@@ -118,7 +132,7 @@ public static class Vents
             : new[] { clientId };
         BlockedReceivers[assembly] = newBlockedArray;
     }
-    
+
     public static void SetAssemblyRefName(Assembly assembly, string name)
     {
         AssemblyNames[assembly] = name;

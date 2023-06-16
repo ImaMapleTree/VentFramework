@@ -45,6 +45,8 @@ public class Optional<T>
         return optional == null ? new Optional<T>() : new Optional<T>(optional);
     }
 
+    public Optional<T> CoalesceEmpty(Func<Optional<T>> mapFunc) => Exists() ? this : Of(mapFunc().Item ?? default);
+    
     public virtual bool Exists() => HasValue;
 
     public Optional<TR> Map<TR>(Func<T, TR> mapFunc) => new(Exists() ? mapFunc(Item!) : default) { HasValue = HasValue };
@@ -81,6 +83,16 @@ public class Optional<T>
     {
         if (!Exists()) throw new NullReferenceException("Called .Get() on Optional with no item.");
         return Item!;
+    }
+
+    /// <summary>
+    /// Compares the inner result of this optional, if it doesn't exist immediately returns false, otherwise, checks truth with the predicate function
+    /// </summary>
+    /// <param name="predicate">predicate function to check item against, if present</param>
+    /// <returns>false if no item exists, otherwise returns the result of the predicate function</returns>
+    public bool Compare(Func<T, bool> predicate)
+    {
+        return Exists() && predicate(Item!);
     }
 
     public T OrElse(T other) => Exists() ? Item! : other;

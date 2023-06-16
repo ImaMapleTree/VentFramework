@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using VentLib.Utilities;
 using VentLib.Utilities.Optionals;
+// ReSharper disable ParameterHidesMember
 
 namespace VentLib.Options.Game;
 
@@ -43,10 +44,10 @@ public class GameOptionValueBuilder
         if (suffix != null)
             text = Optional<string>.Of(text.OrElseGet(() => value.ToString()!) + suffix);
         if (color != UnityEngine.Color.white)
-            text = Optional<string>.Of(color.Colorize(text.OrElseGet(() => value.ToString()!)!));
+            text = Optional<string>.Of(color.Colorize(text.OrElseGet(() => value.ToString()!)));
         OptionValue v = new(value)
         {
-            text = text
+            Text = text
         };
         return v;
     }

@@ -19,6 +19,11 @@ public class ModRPCAttribute : Attribute
         Receivers = receivers;
         Invocation = invocation;
     }
+    
+    public ModRPCAttribute(object call, RpcActors senders = RpcActors.Everyone, RpcActors receivers = RpcActors.Everyone, MethodInvocation invocation = MethodInvocation.ExecuteNever)
+        : this((uint)call, senders, receivers, invocation)
+    {
+    }
 }
 
 public enum RpcActors: byte

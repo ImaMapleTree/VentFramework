@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using VentLib.Logging;
 using VentLib.Options.Game.Interfaces;
+using VentLib.Utilities.Collections;
 using VentLib.Utilities.Optionals;
 
 namespace VentLib.Options.Game.Tabs;
@@ -12,7 +13,7 @@ public abstract class VanillaTab : IGameOptionTab
     protected UnityOptional<GameObject> TabButton = UnityOptional<GameObject>.Null();
     protected UnityOptional<GameObject> RelatedMenu = UnityOptional<GameObject>.Null();
 
-    private List<GameOption> options = new();
+    private OrderedSet<GameOption> options = new();
     private readonly List<Action<IGameOptionTab>> callbacks = new();
     
     public void Activate()
@@ -67,7 +68,7 @@ public abstract class VanillaTab : IGameOptionTab
 
     public Optional<Vector3> GetPosition() => TabButton.Map(btn => btn.transform.localPosition);
 
-    public List<GameOption> GetOptions() => options;
+    public List<GameOption> GetOptions() => options.AsList();
 
     protected abstract UnityOptional<SpriteRenderer> Highlight();
 }

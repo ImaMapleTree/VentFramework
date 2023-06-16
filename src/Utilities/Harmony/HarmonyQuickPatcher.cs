@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
+using VentLib.Logging;
 using VentLib.Utilities.Extensions;
 using VentLib.Utilities.Harmony.Attributes;
 using HarmonyPatchType = VentLib.Utilities.Harmony.Attributes.HarmonyPatchType;
@@ -17,7 +18,7 @@ public class HarmonyQuickPatcher
     {
         var pseudoHarmony = _harmonyInstances.GetOrCompute(assembly, () => new HarmonyLib.Harmony(assembly.FullName));
 
-        AssemblyUtils.FlattenAssemblyTypes(assembly, AccessFlags.AllAccessFlags)
+        assembly.GetTypes()
             .SelectMany(type => type.GetMethods(AccessFlags.StaticAccessFlags))
             .Where(t => t.GetCustomAttribute<QuickHarmonyAttribute>() != null)
             .ForEach(method =>
@@ -26,6 +27,8 @@ public class HarmonyQuickPatcher
                 HarmonyMethod harmonyMethod = new(method, priority: harmonyAttribute.Priority);
                 MethodBase targetMethod = AccessTools.Method(harmonyAttribute.TargetType, harmonyAttribute.MethodName);
 
+                VentLogger.Trace($"Quick Patching => {targetMethod.Name} ({harmonyAttribute.TargetType})", "HarmonyQuickPatcher");
+                
                 switch (harmonyAttribute.PatchType)
                 {
                     case HarmonyPatchType.Prefix:

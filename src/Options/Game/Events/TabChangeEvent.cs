@@ -1,5 +1,4 @@
 using VentLib.Options.Game.Interfaces;
-using VentLib.Options.Game.Tabs;
 
 namespace VentLib.Options.Game.Events;
 

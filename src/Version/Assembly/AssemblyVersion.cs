@@ -47,7 +47,7 @@ public class AssemblyVersion: Version
 
     protected override void WriteInfo(MessageWriter writer)
     {
-        writer.Write(Assembly?.GetName()?.FullName ?? "NULL");
+        writer.Write(Assembly?.GetName().FullName ?? "NULL");
         writer.Write(MajorVersion);
         writer.Write(MinorVersion);
         writer.Write(Build);

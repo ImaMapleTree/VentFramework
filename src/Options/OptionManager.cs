@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -15,14 +16,17 @@ namespace VentLib.Options;
 
 public class OptionManager
 {
-    public static string OptionPath { get; } = "BepInEx/config/";
+    private static int dumpCounter = 0;
+    
+    public static string OptionPath => "BepInEx/config/";
     public static string DefaultFile = "options.txt";
     internal static Dictionary<Assembly, List<OptionManager>> Managers = new();
     internal static Dictionary<String, Option> AllOptions = new();
 
+    private readonly EssFile _essFile = new();
     private readonly OrderedDictionary<string, Option> options = new();
     private FileInfo file;
-    private OptionReader optionReader;
+    
     private OrderedSet<Action<IOptionEvent>> optionEventHandlers = new();
     private bool saving;
     private string filePath;
@@ -35,8 +39,7 @@ public class OptionManager
         if (!optionDirectory.Exists) optionDirectory.Create();
         filePath = path;
         file = optionDirectory.GetFile(path);
-        optionReader = new OptionReader(file.ReadText(true));
-        optionReader.ReadToEnd();
+        _essFile.ParseFile(file.FullName);
     }
 
     public static OptionManager GetManager(Assembly? assembly = null, string? file = null)
@@ -59,26 +62,30 @@ public class OptionManager
 
     public Option? GetOption(string qualifier)
     {
-        return GetOptions().FirstOrDefault(opt => opt.Qualifier() == qualifier);
+        return GetOptions().FirstOrOptional(opt => opt.Qualifier() == qualifier)
+            .CoalesceEmpty(() => AllOptions.GetOptional(qualifier))
+            .OrElse(null!);
     }
 
     public List<Option> GetOptions() => options.GetValues().ToList();
 
-    public void Register(Option option)
+    public void Register(Option option, OptionLoadMode loadMode = OptionLoadMode.Load)
     {
         AllOptions[option.Qualifier()] = option;
         
         option.RegisterEventHandler(ev =>
         {
-            if (ev is OptionValueIncrementEvent or OptionValueDecrementEvent) DelaySave();
+            if (ev is not (OptionValueIncrementEvent or OptionValueDecrementEvent)) return;
+            _essFile.WriteToCache(ev.Source());
+            DelaySave(updateAll: false);
         });
 
         if (!option.HasParent())
             options[option.Qualifier()] = option;
         option.Manager = this;
-        option.Load(false);
+        option.Load(loadMode is OptionLoadMode.LoadOrCreate);
         option.RegisterEventHandler(ChangeCallback);
-        OptionHelpers.GetChildren(option).ForEach(Register);
+        OptionHelpers.GetChildren(option).ForEach(o => Register(o, loadMode));
     }
     
     public void RegisterEventHandler(Action<IOptionEvent> eventHandler) => optionEventHandlers.Add(eventHandler);
@@ -87,49 +94,45 @@ public class OptionManager
     {
         try
         {
-            optionReader.Update(option);
+            _essFile.ApplyToOption(option);
         }
-        catch (ArgumentNullException)
+        catch (DataException)
         {
+            string createString = create ? ". Attempting to recreate in file." : ".";
+            VentLogger.Warn($"Failed to load option ({option.Qualifier()})" + createString);
             if (!create) return;
-            OptionWriter writer = new(file.OpenWriter());
-            writer.Write(option, addNewLine: true);
-            writer.Close();
+            _essFile.WriteToCache(option);
+            DelaySave();
+        }
+        catch (Exception exception)
+        {
+            VentLogger.Exception(exception, $"Error loading option ({option.Qualifier()}).");
         }
     }
 
-    internal void SaveAll()
+    internal void SaveAll(bool updateAll = true)
     {
         VentLogger.Trace($"Saving Options to \"{filePath}\"", "OptionSave");
-        OptionWriter writer = new(file.OpenWriter(create: true, fileMode: FileMode.Create));
-        writer.WriteAll(GetOptions());
-        writer.Close();
+        if (updateAll) GetOptions().ForEach(o => _essFile.WriteToCache(o));
+        _essFile.Dump(file.FullName);
         VentLogger.Trace("Saved Options", "OptionSave");
     }
 
-    private void DelaySave()
+    public void DelaySave(float delay = 10f, bool updateAll = true)
     {
         if (saving) return;
         saving = true;
         Async.ScheduleThreaded(() =>
         {
-            SaveAll();
+            SaveAll(updateAll);
             saving = false;
-        }, 10f);
+        }, delay);
     }
     
     private void ChangeCallback(IOptionEvent optionEvent)
     {
         optionEventHandlers.ForEach(eh => eh(optionEvent));
     }
-}
-
-[Flags]
-public enum OptionSortType
-{
-    MainOption = 1,
-    SubOption = 2,
-    All = 3
 }
 
 public enum OptionLoadMode

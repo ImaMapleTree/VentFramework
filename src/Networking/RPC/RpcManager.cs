@@ -76,8 +76,7 @@ internal static class RpcManager
     {
         uint batchId = reader.ReadUInt32();
         byte argumentAmount = reader.ReadByte();
-        if (!BatchArgumentStorage.ContainsKey(batchId))
-            BatchArgumentStorage[batchId] = new object[argumentAmount];
+        BatchArgumentStorage.TryAdd(batchId, new object[argumentAmount]);
 
         args = BatchArgumentStorage[batchId];
         byte argumentIndex = reader.ReadByte();
@@ -87,8 +86,8 @@ internal static class RpcManager
         {
             for (int i = 0; i < args.Length; i++)
             {
-                if (args[i] is BatchReader _reader)
-                    args[i] = _reader.Initialize(rpc.Parameters[i]);
+                if (args[i] is BatchReader batchReaderArg)
+                    args[i] = batchReaderArg.Initialize(rpc.Parameters[i]);
             }
 
             BatchArgumentStorage.Remove(batchId);

@@ -2,6 +2,7 @@
   <Costura>
     <IncludeAssemblies>
       YamlDotNet
+      Jetbrains.Annotations
     </IncludeAssemblies>
   </Costura>
 </Weavers>

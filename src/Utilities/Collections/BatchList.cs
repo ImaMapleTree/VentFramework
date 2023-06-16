@@ -42,9 +42,9 @@ public class BatchList<T>: List<T>, IBatchSendable<BatchList<T>> where T: IRpcSe
 
         int length = itemSize.Get();
         if (length == 0) length = 1;
-        if (length > Rules.MaxPacketSize - 24)
-            throw new ConstraintException($"Length of singular item cannot exceed max packet size ({length} > {Rules.MaxPacketSize})");
-        int batchItemCount = (Rules.MaxPacketSize - 24) / length;
+        if (length > NetworkRules.MaxPacketSize - 24)
+            throw new ConstraintException($"Length of singular item cannot exceed max packet size ({length} > {NetworkRules.MaxPacketSize})");
+        int batchItemCount = (NetworkRules.MaxPacketSize - 24) / length;
         int batches = Mathf.CeilToInt((float)Count / batchItemCount);
         if (batches > 65534) throw new ConstraintException($"BatchList exceeds maximum number of batches ({batches} > 65534)");
 

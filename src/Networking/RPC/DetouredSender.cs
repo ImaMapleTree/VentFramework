@@ -1,17 +1,13 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using HarmonyLib;
-using InnerNet;
-using UnityEngine;
 using VentLib.Logging;
 using VentLib.Networking.Batches;
 using VentLib.Networking.Helpers;
 using VentLib.Networking.Interfaces;
 using VentLib.Networking.RPC.Attributes;
+using VentLib.Networking.RPC.Interfaces;
 using VentLib.Utilities;
 using VentLib.Utilities.Extensions;
 
@@ -44,18 +40,9 @@ internal class DetouredSender
         if (modRPC.Invocation is MethodInvocation.ExecuteAfter) modRPC.InvokeTrampoline(args!);
     }
 
-    private async void DelayedSend(int[]? targets, object?[] args)
+    private void DelayedSend(int[]? targets, object?[] args)
     {
-        int retries = 0;
-        while ((AmongUsClient.Instance == null || PlayerControl.LocalPlayer == null) && retries < 50)
-        {
-            await Task.Delay(500);
-            retries++;
-        }
-
-        if (retries >= 50)
-            VentLogger.Error("Could not gather client instance", "DelayedSend");
-        Send(targets, args);
+        Async.WaitUntil(() => AmongUsClient.Instance != null && PlayerControl.LocalPlayer != null, b => b, _ => Send(targets, args), 0.5f, 10, true);
     }
 
     internal void Send(int[]? targets, object?[] args)
@@ -66,63 +53,66 @@ internal class DetouredSender
         }
         if (!CanSend(out int[]? lastSender) || !Vents.CallingAssemblyFlag().HasFlag(VentControlFlag.AllowedSender)) return;
         lastSender ??= targets;
-        if (batchSend)
-            BatchSend(lastSender, args);
-        else
-            RealSend(lastSender, args);
+        if (batchSend) BatchSend(lastSender, args);
+        else RealSend(lastSender, args);
     }
 
     private void RealSend(int[]? targets, object?[] args)
     {
         RpcHookHelper.GlobalSendCount++; localSendCount++;
-        RpcV2 v2 = RpcV2.Immediate(PlayerControl.LocalPlayer.NetId, 203).Write(callId).RequireHost(false);
-        v2.Write((byte)receivers);
-        v2.WritePacked(PlayerControl.LocalPlayer.NetId);
-        args.Do(a => WriteArg(v2, a!));
-        FinalizeV2(targets, v2);
+        MonoRpc monoRpc = RpcV3.Immediate(PlayerControl.LocalPlayer.NetId, 203).Protected(false).ThreadSafe(true);
+        RpcBody rpcBody = RpcBody.Of(callId).Write((byte)receivers).WritePacked(PlayerControl.LocalPlayer.NetId);
+        args.Do(a => rpcBody.Write(a!));
+        FinalizeV2(targets, monoRpc.SetBody(rpcBody));
     }
 
     private void BatchSend(int[]? targets, object?[] args)
     {
         localSendCount++;
         uint batchId = BatchWriter.BatchId++;
-        RpcV2 v2 = RpcV2.Immediate(PlayerControl.LocalPlayer.NetId, 204).Write(callId).RequireHost(false);
-        v2.Write((byte)receivers);
-        v2.WritePacked(PlayerControl.LocalPlayer.NetId);
-        v2.Write(batchId);
-        v2.Write((byte)args.Length);
+        VentLogger.Fatal($"Arg Length: {args.Length}");
+        MonoRpc monoRpc = RpcV3.Immediate(PlayerControl.LocalPlayer.NetId, 204).Protected(false).ThreadSafe(true)
+            .Write(callId)
+            .Write((byte)receivers)
+            .WritePacked(PlayerControl.LocalPlayer.NetId)
+            .Write(batchId)
+            .Write((byte)args.Length);
+
+        RpcBody extractedBody = ((RpcV3)monoRpc).ExtractBody();
         
+
         for (var index = 0; index < args.Length; index++)
         {
             var arg = args[index];
             RpcHookHelper.GlobalSendCount++;
-            RpcV2 cloned = v2.Clone();
-            cloned.Write((byte)index);
+            RpcBody clonedBody = extractedBody.Clone();
+            clonedBody.Write((byte)index);
             
             if (arg is IBatchSendable batchSendable)
             {
-                BatchWriter batchWriter = new BatchWriter(cloned);
+                BatchWriter batchWriter = new(clonedBody);
                 batchSendable.Write(batchWriter);
                 batchWriter.BatchRpcs.Do(rpc =>
                 {
-                    FinalizeV2(targets, rpc);
+                    FinalizeV2(targets, monoRpc.SetBody(rpc));
                     Thread.Sleep(20);
                 });
                 continue;
             }
 
-            cloned.Write((byte)0);
-            WriteArg(cloned, arg!);
-            FinalizeV2(targets, cloned);
+            clonedBody.Write((byte)0);
+            clonedBody.Write(arg!);
+            FinalizeV2(targets, monoRpc.SetBody(clonedBody));
             Thread.Sleep(20);
         }
 
-        v2.Write((byte)0);
-        v2.Write((byte)4);
-        FinalizeV2(targets, v2);
+        monoRpc.SetBody(extractedBody);
+        monoRpc.Write((byte)0);
+        monoRpc.Write((byte)4);
+        FinalizeV2(targets, monoRpc);
     }
 
-    private void FinalizeV2(int[]? targets, RpcV2 v2)
+    private void FinalizeV2(int[]? targets, MonoRpc monoRpc)
     {
         int[]? blockedClients = Vents.CallingAssemblyBlacklist();
 
@@ -130,13 +120,13 @@ internal class DetouredSender
         int clientId = PlayerControl.LocalPlayer.GetClientId();
         if (targets != null) {
             VentLogger.Debug($"[{localSendCount}::{uuid}::{RpcHookHelper.GlobalSendCount}](Client: {clientId}) Sending RPC ({callId}) as {senderString} to {targets.StrJoin()} | {senders}", "DetouredSender");
-            v2.SendInclusive(blockedClients == null ? targets : targets.Except(blockedClients).ToArray());
+            monoRpc.SendInclusive(blockedClients == null ? targets : targets.Except(blockedClients).ToArray());
         } else if (blockedClients != null) {
             VentLogger.Debug($"[{localSendCount}::{uuid}::{RpcHookHelper.GlobalSendCount}](Client: {clientId}) Sending RPC ({callId}) as {senderString} to all except {blockedClients.StrJoin()} | {senders}", "DetouredSender");
-            v2.SendExclusive(blockedClients);
+            monoRpc.SendExcluding(blockedClients);
         } else {
             VentLogger.Debug($"[{localSendCount}::{uuid}::{RpcHookHelper.GlobalSendCount}] (Client: {clientId}) Sending RPC ({callId}) as {senderString} to all | {senders}", "DetouredSender");
-            v2.Send();
+            monoRpc.Send();
         }
     }
 
@@ -154,43 +144,6 @@ internal class DetouredSender
             RpcActors.Everyone => true,
             _ => throw new ArgumentOutOfRangeException()
         };
-    }
-
-    internal static void WriteArg(RpcV2 rpcV2, object arg)
-    {
-        RpcV2 _ = (arg) switch
-        {
-            bool data => rpcV2.Write(data),
-            byte data => rpcV2.Write(data),
-            float data => rpcV2.Write(data),
-            int data => rpcV2.Write(data),
-            sbyte data => rpcV2.Write(data),
-            string data => rpcV2.Write(data),
-            uint data => rpcV2.Write(data),
-            ulong data => rpcV2.Write(data),
-            ushort data => rpcV2.Write(data),
-            Vector2 data => rpcV2.Write(data),
-            InnerNetObject data => rpcV2.Write(data),
-            IRpcWritable data => rpcV2.Write(data),
-            _ => WriteArgNS(rpcV2, arg)
-        };
-    }
-
-    private static RpcV2 WriteArgNS(RpcV2 rpcV2, object arg)
-    {
-        switch (arg)
-        {
-            case IEnumerable enumerable:
-                List<object> list = enumerable.Cast<object>().ToList();
-                rpcV2.Write((ushort)list.Count);
-                foreach (object obj in list)
-                    WriteArg(rpcV2, obj);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException($"Invalid Argument: {arg}");
-        }
-
-        return rpcV2;
     }
 }
 

@@ -44,7 +44,7 @@ public class Profiler
             return methodTimings.Add((DateTime.Now, profileInfo));
         }
 
-        public Sample StartQ(string? name = null)
+        public Sample Sampled(string? name = null)
         {
             if (!profiler.IsActive) return new Sample(profiler, uint.MaxValue);
             MethodBase? callingMethod = new StackFrame(1).GetMethod();

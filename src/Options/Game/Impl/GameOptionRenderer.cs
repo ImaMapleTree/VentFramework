@@ -1,7 +1,7 @@
+using TMPro;
 using UnityEngine;
 using VentLib.Logging;
 using VentLib.Options.Game.Interfaces;
-using VentLib.Options.Game.Tabs;
 using VentLib.Utilities.Extensions;
 
 namespace VentLib.Options.Game.Impl;
@@ -27,12 +27,27 @@ public class GameOptionRenderer: IGameOptionRenderer
 
     public void PreRender(GameOptionProperties properties, RenderOptions renderOptions)
     {
+        bool isTitle = properties.Source.IsTitle;
+
+        
         properties.SpriteRenderer.transform.localScale = new Vector3(1.2f, 1f, 1f);
+        properties.Behaviour.transform.FindChild("Title_TMP").GetComponent<RectTransform>().sizeDelta = new Vector2(3.5f, 0.37f);
+        
+        if (isTitle)
+        {
+            properties.PlusButton.gameObject.SetActive(false);
+            properties.MinusButton.gameObject.SetActive(false);
+            properties.Value.gameObject.SetActive(false);
+            TextMeshPro text = properties.Behaviour.transform.GetComponentInChildren<TextMeshPro>();
+            text.transform.localPosition += new Vector3(0.05f, -0.2f, 0f);
+            return;
+        }
+        
+        
         properties.PlusButton.localPosition += new Vector3(0.3f, 0f, 0f);
         properties.MinusButton.localPosition += new Vector3(0.3f, 0f, 0f);
         properties.Value.localPosition += new Vector3(0.3f, 0f, 0f);
         properties.Behaviour.transform.Find("Title_TMP").transform.localPosition += new Vector3(0.15f, 0f, 0f);
-        properties.Behaviour.transform.FindChild("Title_TMP").GetComponent<RectTransform>().sizeDelta = new Vector2(3.5f, 0.37f);
     }
 
     
@@ -41,27 +56,32 @@ public class GameOptionRenderer: IGameOptionRenderer
         if (info.index == 0) offset = DefaultOffset;
         var option = properties.Source;
         int lvl = option.Level - 1;
-        option.Behaviour.Get().gameObject.SetActive(true);
-        Transform transform = option.Behaviour.Get().transform;
-        SpriteRenderer render = option.Behaviour.Get().transform.Find("Background").GetComponent<SpriteRenderer>();
+        StringOption stringOption = option.Behaviour.Get();
+        stringOption.gameObject.SetActive(true);
+        
+        Transform transform = stringOption.transform;
+        SpriteRenderer render = properties.SpriteRenderer;//transform.Find("Background").GetComponent<SpriteRenderer>();
         if (lvl > 0)
         {
             render.color = Colors[Mathf.Clamp(((lvl - 1) % 3), 0, 2)];
-            render.size = new Vector2((float)(4.8f - ((lvl - 1) * 0.2)), 0.45f);
-            option.Behaviour.Get().transform.Find("Title_TMP").transform.localPosition = new Vector3(-0.95f + (0.23f * (Mathf.Clamp(lvl - 1, 0, int.MaxValue))), 0f);
-            option.Behaviour.Get().transform.FindChild("Title_TMP").GetComponent<RectTransform>().sizeDelta = new Vector2(3.4f, 0.37f);
-            render.transform.localPosition = new Vector3(0.1f + (0.11f * (lvl - 1)), 0f);
+            render.size = new Vector2((float)(4.8f - (lvl - 1) * 0.2), 0.45f); // was -0.95
+            properties.Text.transform.localPosition = new Vector3(-0.885f + 0.23f * Mathf.Clamp(lvl - 1, 0, int.MaxValue), 0f);
+            //transform.FindChild("Title_TMP").GetComponent<RectTransform>().sizeDelta = new Vector2(3.4f, 0.37f);
+            render.transform.localPosition = new Vector3(0.1f + 0.11f * (lvl - 1), 0f);
         }
+        
+        if (option.IsTitle) render.color = Color.clear;
 
         Vector3 pos = transform.localPosition;
         offset -= option.IsHeader ? 0.75f : 0.5f;
         transform.localPosition = new Vector3(pos.x, offset, pos.z);
+        
     }
 
     public void PostRender(GameOptionsMenu menu)
     {
         if (menu.name == "SliderInner") return;
-        menu.transform.FindChild("../../GameGroup/Text").GetComponent<TMPro.TextMeshPro>().SetText(menu.name);
+        menu.transform.FindChild("../../GameGroup/Text").GetComponent<TextMeshPro>().SetText(menu.name);
         menu.GetComponentInParent<Scroller>().ContentYBounds.max = -offset - 1.5f;
     }
 

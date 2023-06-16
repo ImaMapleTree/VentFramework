@@ -127,6 +127,8 @@ public class OrderedSet<T> : ISet<T>, IList<T>
         backingList.RemoveAt(index);
     }
 
+    public List<T> AsList() => this.backingList;
+
     public T this[int index]
     {
         get => backingList[index];

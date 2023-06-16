@@ -7,7 +7,7 @@ using VentLib.Ranges;
 
 namespace VentLib.Utilities.Collections;
 
-public class OrderedDictionary<TKey, TValue> : IOrderedDictionary where TKey: notnull
+public class OrderedDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IOrderedDictionary where TKey: notnull
 {
     private OrderedDictionary implementation;
 
@@ -31,9 +31,36 @@ public class OrderedDictionary<TKey, TValue> : IOrderedDictionary where TKey: no
         implementation.Add(key, value);
     }
 
+    public void Add(KeyValuePair<TKey, TValue> item)
+    {
+        implementation.Add(item.Key, item.Value);
+    }
+
+    public void Insert(int index, TKey key, object? value)
+    {
+        implementation.Insert(index, key, value);
+    }
+
     public void Clear()
     {
         implementation.Clear();
+    }
+
+    public bool Contains(KeyValuePair<TKey, TValue> item)
+    {
+        return implementation.Contains(item);
+    }
+
+    public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
+    {
+        implementation.CopyTo(array, arrayIndex);
+    }
+
+    public bool Remove(KeyValuePair<TKey, TValue> item)
+    {
+        int count = implementation.Count;
+        implementation.Remove(item.Key);
+        return implementation.Count < count;
     }
 
     public bool Contains(object key)
@@ -46,9 +73,29 @@ public class OrderedDictionary<TKey, TValue> : IOrderedDictionary where TKey: no
         return implementation.Contains(key);
     }
 
+    bool IDictionary<TKey, TValue>.Remove(TKey key)
+    {
+        int count = implementation.Count;
+        implementation.Remove(key);
+        return implementation.Count < count;
+    }
+
+    public bool TryGetValue(TKey key, out TValue value)
+    {
+        value = default!;
+        if (!implementation.Contains(key)) return false;
+        value = (TValue)implementation[key]!;
+        return true;
+    }
+
     public bool ContainsValue(TValue? value)
     {
         return implementation.Values.Cast<TValue>().Contains(value);
+    }
+
+    public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+    {
+        return GetKeys().Zip(GetValues()).Select(t => new KeyValuePair<TKey, TValue>(t.First, t.Second)).GetEnumerator();
     }
 
     IDictionaryEnumerator IOrderedDictionary.GetEnumerator()
@@ -109,15 +156,19 @@ public class OrderedDictionary<TKey, TValue> : IOrderedDictionary where TKey: no
         set => implementation[key] = value;
     }
     
-    public TValue? this[TKey key]
+    public TValue this[TKey key]
     {
-        get => (TValue?)implementation[key];
+        get => (TValue)implementation[key]!;
         set => implementation[key] = value;
     }
 
     public ICollection Keys => implementation.Keys;
 
+    ICollection<TValue> IDictionary<TKey, TValue>.Values => GetValues().ToList();
+
     public IEnumerable<TKey> GetKeys() => Keys.Cast<TKey>();
+
+    ICollection<TKey> IDictionary<TKey, TValue>.Keys => GetKeys().ToList();
 
     public ICollection Values => implementation.Values;
 

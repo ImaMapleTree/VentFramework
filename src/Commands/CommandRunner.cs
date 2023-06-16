@@ -1,151 +1,62 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using HarmonyLib;
 using VentLib.Commands.Attributes;
-using VentLib.Commands.Interfaces;
-using VentLib.Logging;
+using VentLib.Utilities.Extensions;
 
 namespace VentLib.Commands;
 
 public class CommandRunner
 {
-    internal static CommandRunner Instance = null!;
-    internal Dictionary<CommandAttribute, object?> Registered = new();
+    public static CommandRunner Instance { get; private set; } = null!;
+    internal Dictionary<string, List<Command>> Commands = new();
+    internal Dictionary<string, List<Command>> CaseSensitiveCommands = new();
 
     internal CommandRunner()
     {
         Instance = this;
     }
 
-    public void Run(CommandContext context)
+    public void Register(Assembly assembly)
     {
-        string lowerAlias = context.Alias.ToLower();
-        List<CommandAttribute> commandsToBeRun = Registered.Keys.Where(cmd => 
-            !cmd.IsSubcommand && (cmd.Aliases.Contains(context.Alias) || !cmd.CaseSensitive && 
-                cmd.Aliases.Any(str => str.ToLower().Equals(lowerAlias)))).ToList();
-        
-        while (commandsToBeRun.Count > 0)
-        {
-            var context1 = context;
-            commandsToBeRun
-                .Where(attr => attr.User is CommandUser.Everyone || (AmongUsClient.Instance.AmHost && PlayerControl.LocalPlayer.PlayerId == context1.Source.PlayerId))
-                .Select(cmd => Registered[cmd])
-                .Do(obj =>
-                {
-                    if (obj == null) return;
-                    if (obj is ICommandReceiver recv) recv.Receive(context1.Source, context1);
-                    else
-                    {
-                        // lol this is so lazy
-                        object[] lazyArray = (object[])obj;
-                        AutocastAndInvoke((MethodInfo)lazyArray[1], lazyArray[0], context1);
-                    }
-                });
-
-            context = context.Subcommand();
-            commandsToBeRun = commandsToBeRun
-                .Where(cmd => cmd.Subcommands.Count > 0)
-                .Where(attr => attr.User is CommandUser.Everyone || (AmongUsClient.Instance.AmHost && PlayerControl.LocalPlayer.PlayerId == context1.Source.PlayerId))
-                .SelectMany(cmd => cmd.Subcommands)
-                .Where(cmd => cmd.Aliases.Contains(context.Alias) || !cmd.CaseSensitive && cmd.Aliases.Any(str => str.ToLower().Equals(lowerAlias))).ToList();
-        }
+        assembly.GetTypes().ForEach(t => CommandAttribute.Register(this, t));
     }
 
-    internal void Register(Assembly assembly)
+    internal void Register(Command command)
     {
-        assembly.GetTypes().Do(t =>
-        {
-            CommandAttribute? commandAttribute = t.GetCustomAttribute<CommandAttribute>();
-            if (commandAttribute == null) return;
-            RegisterType(t, commandAttribute);
-        });
+        Dictionary<string, List<Command>> commandDictionary = command.Flags.HasFlag(CommandFlag.CaseSensitive) ? CaseSensitiveCommands : Commands;
+        command.Aliases.ForEach(alias => commandDictionary.GetOrCompute(alias, () => new List<Command>()).Add(command));
     }
 
-    private void AutocastAndInvoke(MethodInfo method, object instance, CommandContext cmdContext)
+    internal void Execute(CommandContext context)
     {
-        ParameterInfo[] parameters = method.GetParameters();
-        switch (parameters.Length)
-        {
-            case 0:
-                method.Invoke(instance, null);
-                break;
-            case 1:
-                method.Invoke(instance, new object[] { cmdContext.Source });
-                break;
-            case 2:
-                method.Invoke(instance, new object[] { cmdContext.Source, cmdContext });
-                break;
-            default:
-                object[] args = parameters.Select((p, i) =>
-                {
-                    if (i <= 1) return null;
-                    Type type = p.ParameterType;
-                    try {
-                        return Convert.ChangeType(cmdContext.Args[i-2], type);
-                    } catch {
-                        cmdContext.Errored = true;
-                        cmdContext.ErroredParameters.Add(i);
-                        return type.IsValueType ? Activator.CreateInstance(type) : null;
-                    }
-                }).ToArray()!;
-                args[0] = cmdContext.Source;
-                args[1] = cmdContext;
-                method.Invoke(instance, args);
-                break;
-        }
+        List<Command>? matches = Commands!.GetValueOrDefault(context.Alias);
+        matches ??= CaseSensitiveCommands!.GetValueOrDefault(context.Alias);
+        matches?.ForEach(m => ExecuteLowestCommands(m, context));
     }
+    
+    private bool ExecuteLowestCommands(Command source, CommandContext context)
+    {
+        if (source.Flags.HasFlag(CommandFlag.HostOnly) && !context.Source.IsHost()) return false;
+        if (source.Flags.HasFlag(CommandFlag.ModdedOnly) && !context.Source.IsModded()) return false;
+        if (source.Flags.HasFlag(CommandFlag.LobbyOnly) && LobbyBehaviour.Instance == null) return false;
+        if (source.Flags.HasFlag(CommandFlag.InGameOnly) && LobbyBehaviour.Instance != null) return false;
 
-    private void RegisterType(Type type, CommandAttribute attribute)
-    { 
-        ConstructorInfo? constructor = type.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, Array.Empty<Type>());
-        object? instance = constructor?.Invoke(null);
-        
-        type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic)
-           .Where(m => m.GetCustomAttribute<CommandAttribute>() != null).Do(marked => {
-               CommandAttribute subAttribute = marked.GetCustomAttribute<CommandAttribute>()!;
-               subAttribute.IsSubcommand = true;
-               if (marked.IsStatic)
-               {
-                   subAttribute.Generate(type.Assembly);
-                   attribute.Subcommands.Add(subAttribute);
-                   Registered[subAttribute] = new object?[] { null, marked };
-               }
-               else if (instance == null)
-                    VentLogger.Error($"Could not initialize subcommand method: {marked}. Parent method must have a default no-args constructor.");
-               else
-               {
-                   subAttribute.Generate(type.Assembly);
-                   attribute.Subcommands.Add(subAttribute);
-                   Registered[subAttribute] = new[] { instance, marked };
-               }
-           });
-        
-        type.GetNestedTypes(BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Instance).Do(subtype =>
+        if (context.Alias == null) return false;
+        HashSet<string> aliases = source.Aliases.ToHashSet();
+        string alias = context.Alias;
+        if (!source.Flags.HasFlag(CommandFlag.CaseSensitive))
         {
-            CommandAttribute? subAttribute = subtype.GetCustomAttribute<CommandAttribute>();
-            if (subAttribute == null) return;
-            subAttribute.IsSubcommand = true;
-            attribute.Subcommands.Add(subAttribute);
-            RegisterType(subtype, subAttribute);
-        });
-        
-        
-        attribute.Generate(type.Assembly);
-        bool isReceiver = type.IsAssignableTo(typeof(ICommandReceiver));
-        if (!isReceiver) {
-            Registered[attribute] = null;
-            return;
-        }
-        
-        if (constructor == null)
-        {
-            VentLogger.Error($"Could not initialize Receiver class: {type}. Classes marked with the Command Attribute and that implement ICommandReceiver should have a default no-args constructor.");
-            Registered[attribute] = null;
-            return;
+            aliases = aliases.Select(s => s.ToLowerInvariant()).ToHashSet();
+            alias = alias.ToLowerInvariant();
         }
 
-        Registered[attribute] = instance;
+        if (!aliases.Contains(alias)) return false;
+        
+        bool higherExecution = source.SubCommands.Any(sc => ExecuteLowestCommands(sc, context.Subcommand()));
+        if (higherExecution) return false;
+
+        source.Execute(context);
+        return true;
     }
 }

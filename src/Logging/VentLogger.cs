@@ -9,12 +9,15 @@ using VentLib.Options.IO;
 using VentLib.Options.Processors;
 using VentLib.Utilities;
 using VentLib.Utilities.Extensions;
+using VentLib.Version;
 
 namespace VentLib.Logging;
 
 public static class VentLogger
 {
     public static StreamWriter? OutputStream;
+    private static readonly string? LogFile;
+    private static readonly DirectoryInfo? LogDirectory;
     private static readonly bool CreateNewLog;
     private static int _logLevel;
     private static int _fileLevel;
@@ -57,24 +60,10 @@ public static class VentLogger
         _fileLevel = level.Name == "SAME" ? _logLevel : level.Level;
         
         if (!writeToFile) return;
-        DirectoryInfo logDirectory = new DirectoryInfo(logDirectoryOption.GetValue<string>());
-        if (!logDirectory.Exists) logDirectory.Create();
-        string fullFilename = CreateFullFilename(logDirectory);
-        
-        try
-        {
-            OutputStream = new HookedWriter(File.Open(fullFilename, FileMode.Create));
-            OutputStream.AutoFlush = true;
-        }
-        catch
-        {
-            OutputStream = new StreamWriter(System.Console.OpenStandardOutput());
-            OutputStream.AutoFlush = true;
-        }
-
-        object driver = typeof(ConsoleManager).GetProperty("Driver", AccessFlags.StaticAccessFlags)!.GetValue(null)!;
-        driver.GetType().GetProperty("StandardOut", AccessFlags.InstanceAccessFlags)!.SetValue(driver, OutputStream, AccessFlags.InstanceAccessFlags, null, null, null);
-        driver.GetType().GetProperty("ConsoleOut", AccessFlags.InstanceAccessFlags)!.SetValue(driver, OutputStream, AccessFlags.InstanceAccessFlags, null, null, null);
+        LogDirectory = new DirectoryInfo(logDirectoryOption.GetValue<string>());
+        if (!LogDirectory.Exists) LogDirectory.Create();
+        LogFile = CreateFullFilename(LogDirectory);
+        ConfigureOutputStream(LogFile);
     }
 
     public static void Trace(string message, string? tag = null) => Log(LogLevel.Trace, message, tag, Assembly.GetCallingAssembly());
@@ -84,7 +73,7 @@ public static class VentLogger
     public static void High(string message, string? tag = null) => Log(LogLevel.High, message, tag, Assembly.GetCallingAssembly());
     public static void Warn(string message, string? tag = null) => Log(LogLevel.Warn, message, tag, Assembly.GetCallingAssembly());
     public static void Error(string message, string? tag = null) => Log(LogLevel.Error, message, tag, Assembly.GetCallingAssembly());
-    public static void Exception(Exception exception, string? message = "", string? tag = null) => Log(LogLevel.Error, message + exception, tag, Assembly.GetCallingAssembly());
+    public static void Exception(Exception exception, string? message = "", string? tag = null) => Log(LogLevel.Error, $"{message} Exception={exception}", tag, Assembly.GetCallingAssembly());
     public static void Fatal(string message, string? tag = null) => Log(LogLevel.Fatal, message, tag, Assembly.GetCallingAssembly());
 
     public static void SendInGame(string message)
@@ -105,7 +94,7 @@ public static class VentLogger
         if (Configuration.ShowSourceName)
         {
             int longestSource = Vents.AssemblyNames.Values.Select(s => s.Length).Sorted(l => l).LastOrDefault(0);
-            sourcePrefix = ":" + Vents.AssemblyNames!.GetValueOrDefault(source, "Unknown").PadLeft(longestSource);
+            sourcePrefix = ":" + Vents.AssemblyNames.GetValueOrDefault(source, "Unknown").PadLeft(longestSource);
         }
         
         string levelPrefix = level.Name.PadRight(LogLevel.LongestName);
@@ -129,14 +118,44 @@ public static class VentLogger
         ConsoleManager.SetConsoleColor(Configuration.DefaultColor);
     }
 
+    public static string? Dump()
+    {
+        OutputStream?.Close();
+        if (LogFile == null) return LogFile;
+        
+        File.Copy(LogFile, LogDirectory!.GetFile("dump.log").FullName, true);
+        ConfigureOutputStream(LogFile, FileMode.Append);
+        return LogFile;
+    }
+
     private static string CreateFullFilename(DirectoryInfo logDirectory)
     {
         if (!CreateNewLog) return Path.Join(logDirectory.FullName, "latest.log");
-        string dateFilename = DateTime.Now.ToString("yyyy-MM-dd");
+        string dateFilename = DateTime.Now.ToString("yy-MM-dd");
         FileInfo[] allLogs = logDirectory.GetFiles();
         int similarNames = 1;
         while (allLogs.Any(f => f.Name == $"{dateFilename}-{similarNames}.log")) similarNames++;
         return Path.Join(logDirectory.FullName, $"{dateFilename}-{similarNames}.log");
+    }
+
+    private static void ConfigureOutputStream(string path, FileMode mode = FileMode.Create)
+    {
+        try
+        {
+            HookedWriter writer = new HookedWriter(File.Open(path, mode));
+            writer.SetFilePath(LogFile);
+            OutputStream = writer;
+            OutputStream.AutoFlush = true;
+        }
+        catch
+        {
+            OutputStream = new StreamWriter(System.Console.OpenStandardOutput());
+            OutputStream.AutoFlush = true;
+        }
+
+        object driver = typeof(ConsoleManager).GetProperty("Driver", AccessFlags.StaticAccessFlags)!.GetValue(null)!;
+        driver.GetType().GetProperty("StandardOut", AccessFlags.InstanceAccessFlags)!.SetValue(driver, OutputStream, AccessFlags.InstanceAccessFlags, null, null, null);
+        driver.GetType().GetProperty("ConsoleOut", AccessFlags.InstanceAccessFlags)!.SetValue(driver, OutputStream, AccessFlags.InstanceAccessFlags, null, null, null);
     }
     
     public static class Configuration

@@ -22,7 +22,6 @@ public class ModRPC
     internal readonly MethodInfo TargetMethod;
     internal readonly ModRPCAttribute Attribute;
     internal DetouredSender Sender = null!;
-    private readonly Hook hook;
     private readonly MethodBase trampoline;
     private readonly Func<object?> instanceSupplier;
 
@@ -40,7 +39,7 @@ public class ModRPC
             throw new ArgumentException($"Unable to Register: {targetMethod.Name}. Reason: VentLib does not current allow for methods without declaring types");
 
         Assembly = declaringType.Assembly;
-        hook = RpcHookHelper.Generate(this);
+        Hook hook = RpcHookHelper.Generate(this);
         trampoline = hook.GenerateTrampoline();
 
         instanceSupplier = () =>

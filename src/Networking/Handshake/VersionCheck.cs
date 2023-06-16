@@ -22,7 +22,8 @@ public class VersionCheck
     public static void SendVersion(Version.Version version)
     {
         PlayerControl? lastSender = Vents.GetLastSender((uint)VentCall.VersionCheck);
-        VentLogger.Info($"Received Version: \"{version.ToSimpleName()}\" from Player {lastSender?.Data?.PlayerName}", "VentLib");
+        if (lastSender == null) return;
+        VentLogger.Info($"Received Version: \"{version.ToSimpleName()}\" from Player {lastSender.Data?.PlayerName}", "VentLib");
         VersionControl vc = VersionControl.Instance;
 
         if (lastSender != null)
@@ -46,6 +47,9 @@ public class VersionCheck
                 break;
             case HandshakeResult.Kick:
                 AmongUsClient.Instance.KickPlayer(player.GetClientId(), false);
+                break;
+            case HandshakeResult.Ban:
+                AmongUsClient.Instance.KickPlayer(player.GetClientId(), true);
                 break;
             case HandshakeResult.PassDoNothing:
                 VersionControl.Instance.PassedClients.Add(player.GetClientId());

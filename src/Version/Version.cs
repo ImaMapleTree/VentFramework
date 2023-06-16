@@ -1,7 +1,6 @@
 using System;
 using HarmonyLib;
 using Hazel;
-using VentLib.Logging;
 using VentLib.Networking;
 using VentLib.Networking.Interfaces;
 using VentLib.Utilities;
@@ -20,7 +19,6 @@ public abstract class Version: IRpcSendable<Version>
     private static Version ReadStatic(MessageReader reader)
     {
         VersionType type = (VersionType)reader.ReadByte();
-        VentLogger.Trace($"Version Type: {type}", "VersionHandshake");
         switch (type)
         {
             case VersionType.None:
@@ -47,6 +45,7 @@ public abstract class Version: IRpcSendable<Version>
     }
     
     public abstract Version Read(MessageReader reader);
+    
     protected abstract void WriteInfo(MessageWriter writer);
     
     public void Write(MessageWriter writer)
@@ -61,6 +60,21 @@ public abstract class Version: IRpcSendable<Version>
         writer.Write((byte)type);
         WriteInfo(writer);
     }
+
+    public static bool operator ==(Version? versionA, Version? versionB)
+    {
+        return versionA?.Equals(versionB) ?? ReferenceEquals(versionB, null);
+    }
+    
+    public static bool operator !=(Version? versionA, Version? versionB)
+    {
+        return !versionA?.Equals(versionB) ?? !ReferenceEquals(versionB, null);
+    }
+
+    public override bool Equals(object? obj) => obj is Version;
+
+    // ReSharper disable once BaseObjectGetHashCodeCallInGetHashCode
+    public override int GetHashCode() => base.GetHashCode();
 
     public abstract string ToSimpleName();
 }

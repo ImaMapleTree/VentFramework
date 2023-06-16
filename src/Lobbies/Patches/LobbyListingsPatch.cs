@@ -39,11 +39,11 @@ internal class LobbyListingsPatch
 [HarmonyPatch(typeof(FindAGameManager), nameof(FindAGameManager.Start))]
 internal class LobbyListingUIPatch
 {
-    private static bool option = true;
+    private static bool _option = true;
 
     internal static void Postfix(FindAGameManager __instance)
     {
-        if (option) {
+        if (_option) {
             CustomFinderMenu(__instance);
             return;
         }
@@ -70,10 +70,7 @@ internal class LobbyListingUIPatch
         PButton two = buttons[3];
         PButton three = buttons[4];
         PButton langButton = buttons[5];
-        PButton backButton = buttons[6];
-        PButton chatButton = buttons[7];
         PButton gameTypeButton = buttons[9];
-        PButton helpButton = buttons[10];
         PButton filterButton = buttons[11];
         
         
@@ -101,7 +98,7 @@ internal class LobbyListingUIPatch
         
         // Moving filters to left side
         textComponents["FilterTags"].FindChild("Title_TMP").localPosition -= new Vector3(1.25f, 1.7f);
-        textComponents["FilterTags"].GetComponentsInChildren<Component>().Where(c => c.name == "HelpButton").Do(c => c.gameObject.SetActive(false));
+        textComponents["FilterTags"].GetComponentsInChildren<Component>().Where(c1 => c1.name == "HelpButton").Do(c2 => c2.gameObject.SetActive(false));
         filterButton.transform.localPosition -= new Vector3(2.65f, 2.15f);
         
         // Moving impostor count
