@@ -7,6 +7,7 @@ using VentLib.Options.Interfaces;
 using VentLib.Options.IO;
 using VentLib.Ranges;
 using VentLib.Utilities.Optionals;
+// ReSharper disable MethodOverloadWithOptionalParameter
 
 namespace VentLib.Options;
 

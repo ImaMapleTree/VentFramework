@@ -13,6 +13,7 @@ namespace VentLib.Options.Game.Tabs;
 
 public class GameOptionTab : IGameOptionTab
 {
+    private static readonly StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(GameOptionTab));
     private List<GameOption> Options { get; } = new();
     private string name;
     private Func<Sprite> spriteSupplier;
@@ -97,14 +98,14 @@ public class GameOptionTab : IGameOptionTab
 
     public void Activate()
     {
-        VentLogger.Info($"Activated Tab \"{name}\"", "TabSwitch");
+        log.Info($"Activated Tab \"{name}\"", "TabSwitch");
         GetTabHighlight().IfPresent(highlight => highlight.enabled = true);
         relatedMenu.IfPresent(menu => menu.SetActive(true));
     }
 
     public void Deactivate()
     {
-        VentLogger.Debug($"Deactivated Tab \"{name}\"", "TabSwitch");
+        log.Debug($"Deactivated Tab \"{name}\"", "TabSwitch");
         GetTabHighlight().IfPresent(highlight => highlight.enabled = false);
         relatedMenu.IfPresent(menu => menu.SetActive(false));
     }

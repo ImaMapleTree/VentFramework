@@ -20,7 +20,7 @@ public static class ColorUtils
     
     public static string ToHex(this Color c)
     {
-        return $"#{ToByte(c.r):X2}{ToByte(c.g):X2}{ToByte(c.b):X2}{ToByte(c.a):X2}";
+        return $"#{ToByte(c.r):X2}{ToByte(c.g):X2}{ToByte(c.b):X2}";
     }
     
     private static byte ToByte(float f)

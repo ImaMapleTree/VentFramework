@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using Hazel;
+using VentLib.Logging;
 using VentLib.Networking.Interfaces;
 using VentLib.Options.Events;
 using VentLib.Options.Interfaces;
@@ -15,6 +15,8 @@ namespace VentLib.Options;
 
 public class Option: IRpcSendable<Option>
 {
+    private static StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(Option));
+    // ReSharper disable once InconsistentNaming
     internal string name = null!;
     internal string? Key;
     public Optional<string> Description = Optional<string>.Null();
@@ -22,7 +24,7 @@ public class Option: IRpcSendable<Option>
     public Dictionary<string, object> Attributes = new();
 
     internal Optional<int> Index = Optional<int>.Null();
-    internal int DefaultIndex;
+    public int DefaultIndex { get; internal set; }
 
     internal Type ValueType
     {
@@ -35,7 +37,7 @@ public class Option: IRpcSendable<Option>
 
     protected Optional<OptionValue> Value = Optional<OptionValue>.Null();
 
-    protected Optional<Option> Parent = Optional<Option>.Null();
+    internal Optional<Option> Parent = Optional<Option>.Null();
     public readonly SubOptions Children = new();
     internal OptionManager? Manager;
 
@@ -44,8 +46,10 @@ public class Option: IRpcSendable<Option>
     public string Name() => name;
 
     public string Qualifier() => Parent.Map(p => p.Qualifier() + ".").OrElse("") + (Key ?? Name());
+    internal int InternalLevel() => Parent.Exists() ? Parent.Get().InternalLevel() + 1 : 0;
+    
 
-    internal void AddChild(Option child)
+    public void AddChild(Option child)
     {
         Children.Add(child);
         child.Parent = Optional<Option>.Of(this);
@@ -58,8 +62,11 @@ public class Option: IRpcSendable<Option>
     
     public OptionValue GetRawValue()
     {
-        if (!Index.Exists()) return GetDefault();
-        return Value.OrElseSet(() => Values[EnforceIndexConstraint(Index.Get(), true)]);
+        return Value.Transform(v => v, () =>
+        {
+            if (!Index.Exists()) return GetDefault();
+            return Value.OrElseSet(() => Values[EnforceIndexConstraint(Index.Get(), true)]);
+        });
     }
 
     public object GetValue() => GetRawValue().Value;
@@ -91,6 +98,8 @@ public class Option: IRpcSendable<Option>
         if (triggerEvent) EventHandlers.ForEach(eh => eh(optionValueEvent));
     }
 
+    public void SetHardValue(object value) => SetValue(IOSettings.OptionValueLoader.LoadValue(Values, value, IOSettings));
+
     public void SetDefaultIndex(int index)
     {
         DefaultIndex = EnforceIndexConstraint(index);
@@ -103,9 +112,7 @@ public class Option: IRpcSendable<Option>
     
     public void Register(OptionManager manager, OptionLoadMode loadMode = OptionLoadMode.None)
     {
-        manager.Register(this);
-        if (loadMode is OptionLoadMode.Load or OptionLoadMode.LoadOrCreate)
-            Load(loadMode is OptionLoadMode.LoadOrCreate);
+        manager.Register(this, loadMode);
         OptionRegisterEvent registerEvent = new(this, manager);
         EventHandlers.ForEach(eh => eh(registerEvent));
     }
@@ -127,19 +134,19 @@ public class Option: IRpcSendable<Option>
         EventHandlers.ForEach(eh => eh(loadEvent));
     }
 
-    protected int EnforceIndexConstraint(int index, bool allowOUFlow = false)
+    protected int EnforceIndexConstraint(int index, bool allowOuFlow = false)
     {
         if (Values.Count == 0)
             throw new ConstraintException($"Index fails constraint because no values exist! (Option={Qualifier()})");
         if (index >= Values.Count)
         {
-            if (!allowOUFlow)
+            if (!allowOuFlow)
                 throw new ConstraintException($"Index is greater than value count! ({index} >= {Values.Count})");
             index = 0;
         } 
         else if (index < 0)
         {
-            if (!allowOUFlow)
+            if (!allowOuFlow)
                 throw new ConstraintException($"Index is less than zero! ({index} < 0)");
             index = Values.Count - 1;
         }
@@ -154,44 +161,13 @@ public class Option: IRpcSendable<Option>
 
     public Option Read(MessageReader reader)
     {
-        string qualifier = reader.ReadString();
-
-        Option? sourceOption = OptionManager.AllOptions.GetValueOrDefault(qualifier);
-        if (sourceOption == null)
-            throw new ArgumentException($"Could not find registered option with qualifier: \"{qualifier}\"");
-        
-        string textValue = reader.ReadString();
-        
-        MemoryStream stream = new(Encoding.UTF8.GetBytes(textValue));
-        StreamReader streamReader = new(stream);
-        OptionReader optionReader = new(streamReader);
-        optionReader.ReadToEnd();
-        streamReader.Close();
-        stream.Close();
-        
-        optionReader.Update(sourceOption);
-
-        return sourceOption;
+        log.Warn("Message reading is currently a WIP");
+        return new Option();
     }
 
     public void Write(MessageWriter writer)
     {
-        writer.Write(Qualifier());
-
-        MemoryStream ms = new();
-        StreamWriter streamWriter = new(ms);
-        OptionWriter optionWriter = new(streamWriter);
-        
-        optionWriter.Write(this);
-        optionWriter.Close();
-
-        StreamReader streamReader = new(ms);
-        
-        string text = streamReader.ReadLine()!;
-        streamReader.Close();
-        ms.Close();
-        
-        writer.Write(text);
+        log.Warn("Message writing is currently a WIP");
     }
 
     internal bool HasParent() => Parent.Exists();

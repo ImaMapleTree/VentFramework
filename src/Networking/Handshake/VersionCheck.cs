@@ -11,6 +11,7 @@ namespace VentLib.Networking.Handshake;
 
 public class VersionCheck
 {
+    private static readonly StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(VersionCheck));
     // This is the sender version of this Rpc. In order to fully utilize it you must make your own handler.
     [VentRPC(VentCall.VersionCheck, RpcActors.Host, RpcActors.NonHosts)]
     public static void RequestVersion()
@@ -22,7 +23,8 @@ public class VersionCheck
     public static void SendVersion(Version.Version version)
     {
         PlayerControl? lastSender = Vents.GetLastSender((uint)VentCall.VersionCheck);
-        VentLogger.Info($"Received Version: \"{version.ToSimpleName()}\" from Player {lastSender?.Data?.PlayerName}", "VentLib");
+        if (lastSender == null) return;
+        log.Info($"Received Version: \"{version.ToSimpleName()}\" from Player {lastSender.Data?.PlayerName}", "VentLib");
         VersionControl vc = VersionControl.Instance;
 
         if (lastSender != null)
@@ -46,6 +48,9 @@ public class VersionCheck
                 break;
             case HandshakeResult.Kick:
                 AmongUsClient.Instance.KickPlayer(player.GetClientId(), false);
+                break;
+            case HandshakeResult.Ban:
+                AmongUsClient.Instance.KickPlayer(player.GetClientId(), true);
                 break;
             case HandshakeResult.PassDoNothing:
                 VersionControl.Instance.PassedClients.Add(player.GetClientId());

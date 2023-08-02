@@ -1,10 +1,11 @@
-using System.Linq;
+using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using UnityEngine;
-using VentLib.Logging;
 
 namespace VentLib.Utilities;
 
+[SuppressMessage("ReSharper", "UnusedType.Global")]
 public class ColorGradient
 {
     private Color[] colors;
@@ -34,16 +35,16 @@ public class ColorGradient
         return new Color(r, g, b);
     }
 
-    public string Apply(string input)
+    public string Apply(string input, int degree = 1)
     {
         if (input.Length == 0) return input;
-        if (input.Length == 1) return colors[0].Colorize(input);
+        if (input.Length == degree) return colors[0].Colorize(input);
         float step = 1f / (input.Length - 1);
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < input.Length; i++)
+        StringBuilder builder = new();
+        for (int i = 0; i < input.Length; i += degree)
         {
-            char c = input[i];
-            builder.Append(Evaluate(step * i).Colorize(c.ToString()));
+            string str = input[i..Math.Min(input.Length, i + degree)];
+            builder.Append(Evaluate(step * i).Colorize(str));
         }
 
         return builder.ToString();

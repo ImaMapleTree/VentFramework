@@ -12,10 +12,8 @@ public static class ReaderExtensions
     {
         if (!ParameterHelper.IsTypeAllowed(typeof(T)))
             throw new ArgumentException($"Unable to write list of type {typeof(T)}");
-
-        RpcV2 lazyRpc = RpcV2.Immediate(0, (byte)0);
-        DetouredSender.WriteArg(lazyRpc, list);
-        lazyRpc.WriteTo(writer);
+        
+        RpcBody.GetInserter(list.GetType()).Insert(list, writer);
     }
 
     public static List<T> ReadList<T>(this MessageReader reader)

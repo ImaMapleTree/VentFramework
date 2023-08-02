@@ -4,6 +4,7 @@ using System.IO;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using InnerNet;
 using VentLib.Lobbies.Patches;
 using VentLib.Logging;
 using VentLib.Utilities;
@@ -14,35 +15,52 @@ namespace VentLib.Lobbies;
 
 public class LobbyChecker
 {
-    private static string LobbyEndpoint = "http://18.219.112.36:8080/lobbies";
+    private static StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(LobbyChecker));
+    /*private static string LobbyEndpoint = "http://localhost:25565/lobbies";
+    private static string LobbyUpdateEndpoint = "http://localhost:25565/update-lobby";*/
+    private const string LobbyEndpoint = "http://18.219.112.36:8080/lobbies";
+    private const string LobbyUpdateEndpoint = "http://18.219.112.36:8080/update-lobby";
     private static readonly HttpClient Client = new();
     private static Dictionary<int, ModdedLobby> _moddedLobbies = new();
-    private static Regex specialCharacterRegex = new("[^A-Za-z-]*");
+    private static readonly Regex SpecialCharacterRegex = new("[^A-Za-z-]*");
 
-    internal static void POSTModdedLobby(string gameId, string host)
+    // ReSharper disable once InconsistentNaming
+    internal static void POSTModdedLobby(int gameId, string host)
     {
-        HttpRequestMessage requestMessage = new HttpRequestMessage();
+        HttpRequestMessage requestMessage = new();
         requestMessage.RequestUri = new Uri(LobbyEndpoint);
         requestMessage.Method = HttpMethod.Post;
-        requestMessage.Headers.Add("game-id", gameId);
+        requestMessage.Headers.Add("game-id", gameId.ToString());
         Version.Version version = VersionControl.Instance.Version ?? new NoVersion();
+        requestMessage.Headers.Add("game-code", GameCode.IntToGameNameV2(gameId));
         requestMessage.Headers.Add("version", version.ToSimpleName());
         requestMessage.Headers.Add("mod-name", Vents.AssemblyNames[Vents.RootAssemby]);
-        requestMessage.Headers.Add("host", specialCharacterRegex.Replace(host.Replace(" ", "-"), ""));
+        requestMessage.Headers.Add("host", SpecialCharacterRegex.Replace(host.Replace(" ", "-"), ""));
+        requestMessage.Headers.Add("region", ServerManager.Instance.CurrentRegion.Name);
         Client.SendAsync(requestMessage);
     }
 
+    internal static void UpdateModdedLobby(int gameId, LobbyStatus lobbyStatus)
+    {
+        HttpRequestMessage requestMessage = new();
+        requestMessage.RequestUri = new Uri(LobbyUpdateEndpoint);
+        requestMessage.Method = HttpMethod.Post;
+        requestMessage.Headers.Add("game-id", gameId.ToString());
+        requestMessage.Headers.Add("status", lobbyStatus.ServerString());
+        Client.SendAsync(requestMessage);
+    }
+
+    // ReSharper disable once InconsistentNaming
     internal static void GETModdedLobbies()
     {
         Task<HttpResponseMessage> response = Client.GetAsync(LobbyEndpoint);
-        SyncTaskWaiter waiter = new(response);
+        SyncTaskWaiter<HttpResponseMessage> waiter = new(response);
         Async.Schedule(() => WaitForResponse(waiter, 0), 0.25f);
-
     }
 
-    private static void WaitForResponse(SyncTaskWaiter response, int times)
+    private static void WaitForResponse(SyncTaskWaiter<HttpResponseMessage> response, int times)
     {
-        if (times > 20) VentLogger.Fatal("Failed to get modded lobbies");
+        if (times > 20) log.Fatal("Failed to get modded lobbies");
         else if (!response.Finished)
             Async.Schedule(() => WaitForResponse(response, times + 1), 1f);
         else HandleResponse(response.Response);
@@ -52,17 +70,13 @@ public class LobbyChecker
     {
         if (response != null)
         {
-            string result = new StreamReader(response.Result.Content.ReadAsStream()).ReadToEnd();
-            VentLogger.Log(LogLevel.Fatal, $"Response from lobby server: {result}", "ModdedLobbyCheck");
+            StreamReader reader = new(response.Result.Content.ReadAsStream());
+            string result = reader.ReadToEnd();
+            reader.Close();
+            log.Log(LogLevel.Fatal, $"Response from lobby server: {result}", "ModdedLobbyCheck");
             _moddedLobbies = JsonSerializer.Deserialize<Dictionary<int, ModdedLobby>>(result)!;
         }
-        
-        
-        foreach (var kv in _moddedLobbies)
-        {
-            VentLogger.Fatal($"{kv.Key}: {kv.Value}");
-        }
-        
+
         LobbyListingsPatch.ModdedGames.ForEach(game =>
         {
             var button = game.Item2!;
@@ -75,17 +89,5 @@ public class LobbyChecker
             button.LanguageText.text = lobby.Mod;
             button.NameText.text = $"{lobby.Host}'s Lobby";
         });
-    }
-}
-
-internal class SyncTaskWaiter
-{
-    internal Task<HttpResponseMessage> Response;
-    internal bool Finished;
-
-    public SyncTaskWaiter(Task<HttpResponseMessage> response)
-    {
-        Response = response;
-        Response.ContinueWith(_ => Finished = true);
     }
 }

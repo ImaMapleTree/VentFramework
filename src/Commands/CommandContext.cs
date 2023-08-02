@@ -4,16 +4,14 @@ using HarmonyLib;
 
 namespace VentLib.Commands;
 
-public struct CommandContext
+public class CommandContext
 {
-    public string OriginalMessage;
-    public string? Group;
-    public string Alias;
-    public string[] Args;
-    public bool Errored;
-    public List<int> ErroredParameters;
+    public string OriginalMessage = null!;
+    public string? Alias;
+    public string[] Args = null!;
+    public List<int> ErroredParameters = null!;
 
-    internal PlayerControl Source;
+    internal PlayerControl Source = null!;
     
     internal CommandContext(PlayerControl source, string message)
     {
@@ -21,10 +19,12 @@ public struct CommandContext
         string[] split = message.Split(" ");
         Alias = split[0];
         Args = split.Length > 1 ? split[1..] : Array.Empty<string>();
-        Group = null;
-        Errored = false;
         ErroredParameters = new List<int>();
         Source = source;
+    }
+
+    private CommandContext()
+    {
     }
 
     internal CommandContext Subcommand()
@@ -32,10 +32,8 @@ public struct CommandContext
         return new CommandContext
         {
             OriginalMessage = OriginalMessage,
-            Group = Alias,
             Alias = Args.Length > 0 ? Args[0] : null!,
             Args = Args.Length > 1  ? Args[1..] : Array.Empty<string>(),
-            Errored = false,
             ErroredParameters = new List<int>(),
             Source = Source
         };

@@ -14,6 +14,7 @@ namespace VentLib.Networking.RPC;
 
 internal static class RpcManager
 {
+    private static StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(RpcManager));
     private static readonly Dictionary<uint, object[]> BatchArgumentStorage = new();
 
     internal static void Register(ModRPC rpc)
@@ -45,10 +46,10 @@ internal static class RpcManager
         if (player != null && player.PlayerId == PlayerControl.LocalPlayer.PlayerId) return;
         string sender = "Client: " + (player == null ? "?" : player.GetClientId());
         string receiverType = AmongUsClient.Instance.AmHost ? "Host" : "NonHost";
-        VentLogger.Info($"Custom RPC Received ({customId}) from \"{sender}\" as {receiverType}", "VentLib");
+        log.Info($"Custom RPC Received ({customId}) from \"{sender}\" as {receiverType}", "VentLib");
         if (!Vents.RpcBindings.TryGetValue(customId, out List<ModRPC>? rpcs))
         {
-            VentLogger.Warn($"Received Unknown RPC: {customId}", "VentLib");
+            log.Warn($"Received Unknown RPC: {customId}", "VentLib");
             return;
         }
 
@@ -76,19 +77,18 @@ internal static class RpcManager
     {
         uint batchId = reader.ReadUInt32();
         byte argumentAmount = reader.ReadByte();
-        if (!BatchArgumentStorage.ContainsKey(batchId))
-            BatchArgumentStorage[batchId] = new object[argumentAmount];
+        BatchArgumentStorage.TryAdd(batchId, new object[argumentAmount]);
 
         args = BatchArgumentStorage[batchId];
         byte argumentIndex = reader.ReadByte();
         byte batchMarker = reader.ReadByte();
-        VentLogger.Trace($"Handling Batch (ID={batchId}, Marker={batchMarker}, Index={argumentIndex}, Args={argumentAmount})", "BatchRPC");
+        log.Trace($"Handling Batch (ID={batchId}, Marker={batchMarker}, Index={argumentIndex}, Args={argumentAmount})", "BatchRPC");
         if (batchMarker == 4)
         {
             for (int i = 0; i < args.Length; i++)
             {
-                if (args[i] is BatchReader _reader)
-                    args[i] = _reader.Initialize(rpc.Parameters[i]);
+                if (args[i] is BatchReader batchReaderArg)
+                    args[i] = batchReaderArg.Initialize(rpc.Parameters[i]);
             }
 
             BatchArgumentStorage.Remove(batchId);

@@ -2,7 +2,7 @@
     <PropertyGroup>
         <Title>VentFramework</Title>
         <Description>A modding framework for the popular social deduction game Among Us </Description>
-        <Version>1.2.1.20</Version>
+        <Version>1.2.4.2</Version>
         <RootNamespace>VentLib</RootNamespace>
         <TargetFramework>net6.0</TargetFramework>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
@@ -12,6 +12,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Nullable>enable</Nullable>
         <Authors>ImaMapleTree</Authors>
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     </PropertyGroup>
     
     <ItemGroup>
@@ -20,11 +21,19 @@
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
 
-        <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.670" PrivateAssets="all" />
-        <PackageReference Include="Samboy063.Cpp2IL.Core" Version="2022.1.0-development.866" />
-        <PackageReference Include="AmongUs.GameLibs.Steam" Version="2023.6.13" PrivateAssets="all" />
 
-        <PackageReference Include="BepInEx.AutoPlugin" Version="1.1.0" PrivateAssets="all" />
+        <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.671" PrivateAssets="all" />
+
+        <PackageReference Include="JetBrains.Annotations" Version="2023.2.0-eap3">
+            <Aliases>JetbrainsAnnotations</Aliases>
+        </PackageReference>
+
+
+        <PackageReference Include="Pastel" Version="4.1.0" />
+        
+        <PackageReference Include="Samboy063.Cpp2IL.Core" Version="2022.1.0-development.866" />
+        <PackageReference Include="AmongUs.GameLibs.Steam" Version="2023.7.11" PrivateAssets="all" />
+        
         <PackageReference Include="BepInEx.IL2CPP.MSBuild" Version="2.0.1" PrivateAssets="all" />
         
         <PackageReference Include="YamlDotNet" Version="12.3.1" PrivateAssets="all" />

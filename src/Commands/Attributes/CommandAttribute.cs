@@ -1,66 +1,131 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using HarmonyLib;
-using VentLib.Localization;
+using VentLib.Commands.Interfaces;
+using VentLib.Utilities;
+using VentLib.Utilities.Extensions;
 
 namespace VentLib.Commands.Attributes;
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
 public class CommandAttribute: Attribute
 {
-    public string[] Aliases = null!;
-    public readonly CommandUser User = CommandUser.Everyone;
-    public readonly HideCommand HideCommand = HideCommand.Always;
-    public readonly bool CaseSensitive;
+    private CommandFlag flags;
+    private string[] aliases;
 
-    private readonly string[] _aliases;
-    private readonly string[]? _localeAliases;
-
-    internal readonly List<CommandAttribute> Subcommands = new();
-    internal bool IsSubcommand;
-
-    public CommandAttribute(params string[] aliases)
+    public CommandAttribute(CommandFlag flags, params string[] aliases)
     {
-        _aliases = aliases;
+        this.flags = flags;
+        this.aliases = aliases;
     }
     
-    public CommandAttribute(string[]? localeAliases, params string[] aliases)
+    public CommandAttribute(params string[] aliases) : this(CommandFlag.None, aliases)
     {
-        _localeAliases = localeAliases;
-        _aliases = aliases;
+    }
+    
+    
+    /// <summary>
+    /// Entry point into the saga. The flow is a bit complicated but basically.
+    ///
+    /// 1) If tyoe is nested => <see cref="RegisterNestedType"/>
+    /// 2) If type has attribute => <see cref="CommandAttribute.RegisterType"/>
+    /// 3) Otherwise, get all nested methods and register individually
+    /// </summary>
+    public static void Register(CommandRunner commandRunner, Type type)
+    {
+        CommandAttribute? commandAttribute = type.GetCustomAttribute<CommandAttribute>();
+        if (type.IsNested) RegisterNestedType(commandRunner, type);
+        else if (commandAttribute != null) commandAttribute.RegisterType(commandRunner, type, null);
+        else type.GetMethods(AccessFlags.AllAccessFlags).ForEach(m => RegisterFloatingMethod(commandRunner, type, m));
     }
 
-    public CommandAttribute(string[] aliases, string[]? localeAliases = null, CommandUser user = CommandUser.Everyone, HideCommand hideCommand = HideCommand.Always, bool caseSensitive = false)
+    /// <summary>
+    /// Continues the register descent.. if this type is an attribute type then it immediately
+    /// otherwise continue the registration descent.
+    ///
+    /// This method works because we can guarantee that at some point in the chain there was a method marked with the attribute
+    /// </summary>
+    private static void Register(CommandRunner commandRunner, Type type, Command? parentCommand)
     {
-        _localeAliases = localeAliases;
-        _aliases = aliases;
+        CommandAttribute? commandAttribute = type.GetCustomAttribute<CommandAttribute>();
+        if (commandAttribute != null)
+        {
+            commandAttribute.RegisterType(commandRunner, type, parentCommand);
+            return;
+        }
         
-        User = user;
-        HideCommand = hideCommand;
-        CaseSensitive = caseSensitive;
+        type.GetNestedTypes(AccessFlags.AllAccessFlags).ForEach(t => Register(commandRunner, t, parentCommand));
+        type.GetMethods(AccessFlags.AllAccessFlags).ForEach(t => t.GetCustomAttribute<CommandAttribute>()?.RegisterMethod(commandRunner, t, parentCommand?.Instance, parentCommand));
     }
 
-    internal void Generate(Assembly assembly)
+
+    /// <summary>
+    /// Specifically handles the registering of a nested type from the entry point. If the nested type has a parent with the attribute, immediately stops execution,
+    /// otherwise checks if this nested type is an attribute holder, if so registers it
+    /// otherwise, registers the methods
+    /// </summary>
+    private static void RegisterNestedType(CommandRunner commandRunner, Type nestedType)
     {
-        Aliases = _localeAliases == null ? _aliases : _aliases.AddRangeToArray(_localeAliases.SelectMany(a => Localizer.Get(assembly).GetAllTranslations(a)).ToArray());
+        Type? parentType = nestedType.DeclaringType;
+        while (parentType != null)
+        {
+            if (parentType.GetCustomAttribute<CommandAttribute>() != null) return;
+            parentType = parentType.DeclaringType;
+        }
+
+        CommandAttribute? commandAttribute = nestedType.GetCustomAttribute<CommandAttribute>();
+        if (commandAttribute != null) commandAttribute.RegisterType(commandRunner, nestedType, null);
+        else nestedType.GetMethods(AccessFlags.AllAccessFlags).ForEach(m => RegisterFloatingMethod(commandRunner, nestedType, m));
     }
 
-    public override bool Equals(object? obj)
+    /// <summary>
+    /// Registers a standalone method
+    /// </summary>
+    private static void RegisterFloatingMethod(CommandRunner commandRunner, Type parentType, MethodInfo method)
     {
-        if (ReferenceEquals(null, obj)) return false;
-        if (ReferenceEquals(this, obj)) return true;
-        return obj.GetType() == GetType() && Equals((CommandAttribute)obj);
+        CommandAttribute? commandAttribute = method.GetCustomAttribute<CommandAttribute>();
+        if (commandAttribute == null) return;
+        object? instance = parentType.IsAssignableTo(typeof(ICommandReceiver)) ? AccessTools.CreateInstance(parentType) : null;
+        commandAttribute.RegisterMethod(commandRunner, method, instance, null);
+    }
+    
+    /// <summary>
+    /// Main registry for a type, after registering, checks nested types + methods for further registration
+    /// </summary>
+    private void RegisterType(CommandRunner runner, Type type, Command? parentCommand)
+    {
+        object? instance = type.IsAssignableTo(typeof(ICommandReceiver)) ? AccessTools.CreateInstance(type) : null;
+        Command command = new()
+        {
+            Aliases = aliases,
+            Flags = flags,
+            Instance = instance,
+            CommandReceiver = instance != null,
+            Trampoline = instance != null ? AccessTools.Method(type, "Receive", new[] { typeof(PlayerControl), typeof(CommandContext) }) : null
+        };
+        if (parentCommand == null) runner.Register(command);
+        else parentCommand.SubCommands.Add(command);
+        
+        type.GetNestedTypes(AccessFlags.AllAccessFlags).ForEach(t => Register(runner, t, command));
+        type.GetMethods(AccessFlags.AllAccessFlags).ForEach(m => m.GetCustomAttribute<CommandAttribute>()?.RegisterMethod(runner, m, instance, command));
     }
 
-    private bool Equals(CommandAttribute other)
+    /// <summary>
+    /// Registers a method
+    /// </summary>
+    private void RegisterMethod(CommandRunner runner, MethodInfo method, object? instance, Command? parentCommand)
     {
-        return base.Equals(other) && Aliases.Equals(other.Aliases) && User == other.User && HideCommand == other.HideCommand && CaseSensitive == other.CaseSensitive && Equals(Subcommands, other.Subcommands);
-    }
-
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(base.GetHashCode(), Aliases, (int)User, (int)HideCommand, CaseSensitive, Subcommands);
+        if (instance == null && !method.IsStatic) throw new ArgumentException($"Error registering {method.Name} in {method.DeclaringType}. Methods marked as [Command] must be static in classes that don't implement ICommandReceiver");
+        Command command = new()
+        {
+            Aliases = aliases,
+            Flags = flags,
+            Instance = instance,
+            CommandReceiver = false,
+            Trampoline = method
+        };
+        
+        if (parentCommand == null) runner.Register(command);
+        else parentCommand.SubCommands.Add(command);
     }
 }

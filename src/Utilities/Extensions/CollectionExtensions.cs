@@ -52,4 +52,24 @@ public static class CollectionExtensions
     {
         (list[index1], list[index2]) = (list[index2], list[index1]);
     }
+
+    public static bool IsEmpty<T>(this List<T> list)
+    {
+        return list.Count == 0;
+    }
+    
+    public static bool IsEmpty<T>(this HashSet<T> set)
+    {
+        return set.Count == 0;
+    }
+    
+    public static bool IsEmpty(this Array array)
+    {
+        return array.Length == 0;
+    }
+    
+    public static bool IsEmpty<TKey, TValue>(this Dictionary<TKey, TValue> dict) where TKey: notnull
+    {
+        return dict.Count == 0;
+    }
 }

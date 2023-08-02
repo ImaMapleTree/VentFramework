@@ -2,6 +2,8 @@
   <Costura>
     <IncludeAssemblies>
       YamlDotNet
+      Jetbrains.Annotations
+      Pastel
     </IncludeAssemblies>
   </Costura>
 </Weavers>

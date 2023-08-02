@@ -11,13 +11,13 @@ using VentLib.Utilities.Attributes;
 using VentLib.Utilities.Collections;
 using VentLib.Utilities.Extensions;
 using VentLib.Utilities.Optionals;
-using Object = UnityEngine.Object;
 
 namespace VentLib.Options.Game;
 
 [LoadStatic]
 public static class GameOptionController
 {
+    private static readonly StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(GameOptionController));
     private static readonly IGameOptionTab[] BuiltinGameTabs = { new VanillaMainTab(), new VanillaRoleTab()};
     private static readonly OrderedSet<GameOptionTab> Tabs = new();
     public static RenderOptions RenderOptions { get; set; } = new();
@@ -101,7 +101,7 @@ public static class GameOptionController
     {
         if (!_lastInitialized.IsAlive())
         {
-            VentLogger.Warn("Unable to Refresh Option Controller", "OptionController");
+            log.Warn("Unable to Refresh Option Controller", "OptionController");
             return;
         }
         AllTabs().ForEach(tab => tab.Setup(_lastInitialized));
@@ -120,7 +120,7 @@ public static class GameOptionController
     {
         option.Behaviour.IfNotPresent(() =>
         {
-            var template = OptionOpenPatch.template.OrElse(null!);
+            var template = OptionOpenPatch.Template.OrElse(null!);
             if (template == null) throw new NullReferenceException("Template not found during ValidateOptionBehaviour");
             
             string name = template.name;
@@ -136,7 +136,7 @@ public static class GameOptionController
 
             option.Behaviour = UnityOptional<StringOption>.NonNull(stringOption);
 
-            GameOptionProperties properties = new(option);
+            GameOptionProperties properties = option.Properties.OrElseGet(() => new GameOptionProperties(option));
             if (preRender) _renderer.PreRender(properties, RenderOptions);
             option.BindPlusMinusButtons(properties);
         });
@@ -145,7 +145,7 @@ public static class GameOptionController
     private static void RenderCheck(GameOption option, int index)
     {
         ValidateOptionBehaviour(option);
-        _renderer.Render(new GameOptionProperties(option), (option.Level, index), RenderOptions);
+        _renderer.Render(option.Properties.OrElseGet(() => new GameOptionProperties(option)), (option.Level, index), RenderOptions);
     }
     
     private static void SwitchTab(IGameOptionTab newTab)

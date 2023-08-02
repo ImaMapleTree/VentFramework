@@ -4,12 +4,15 @@ using System.Threading.Tasks;
 using UnityEngine;
 using VentLib.Logging;
 
+// ReSharper disable InconsistentNaming
+
 // ReSharper disable LoopVariableIsNeverChangedInsideLoop
 
 namespace VentLib.Utilities;
 
 public class Async
 {
+    private static StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(Async));
     internal static AUCWrapper AUCWrapper { get; } = new();
 
     /// <summary>
@@ -68,16 +71,9 @@ public class Async
     /// <param name="coroutine">Coroutine to run</param>
     /// <param name="delay">Delay to wait until running</param>
     /// <param name="repeat">If the coroutine should repeat continuously</param>
-    public static async void Schedule(IEnumerator coroutine, float delay, bool repeat = false)
+    public static void Schedule(IEnumerator coroutine, float delay, bool repeat = false)
     {
-        await Task.Delay((int)(delay * 1000f));
-        AUCWrapper.StartCoroutine(coroutine);
-
-        while (repeat)
-        {
-            await Task.Delay((int)(delay * 1000f));
-            AUCWrapper.StartCoroutine(coroutine);
-        }
+        AUCWrapper.StartCoroutine(CoroutineWrapper(coroutine, delay, repeat));
     }
     
     /// <summary>
@@ -106,6 +102,82 @@ public class Async
     {
         if (guaranteeMainThread) MainThreadAnchor.ScheduleOnMainThread(() => AUCWrapper.StartCoroutine(CoroutineWrapper(producer, consumer, delay, repeat)));
         else AUCWrapper.StartCoroutine(CoroutineWrapper(producer, consumer, delay, repeat));
+    }
+
+    /// <summary>
+    /// Loops a producer infinitely with a given delay until it produces a non-null item, then passes its result to the callback
+    /// </summary>
+    /// <param name="producer">producer of an item, or null</param>
+    /// <param name="callback">the consumer to be ran once the item is non-null</param>
+    /// <param name="delay">the delay for re-checking the producer function</param>
+    /// <param name="maxRetries">the maximum number of retries before ending the loop</param>
+    /// <param name="guaranteeMainThread">guarantees the task will be ran on the main thread</param>
+    /// <typeparam name="T">producer return type</typeparam>
+    public static void WaitUntil<T>(Func<T?> producer, Action<T> callback, float delay = 0.1f, int maxRetries = int.MaxValue, bool guaranteeMainThread = false) where T: class
+    {
+        WaitUntil(producer, item => item != null, callback!, delay, maxRetries, guaranteeMainThread);
+    }
+
+    /// <summary>
+    /// Loops a producer infinitely with a given delay until it matches a predicate, then passes its result to the callback
+    /// </summary>
+    /// <param name="producer">producer of an item</param>
+    /// <param name="predicate">the function to check the item against</param>
+    /// <param name="callback">the consumer to be ran once the item passes the predicate</param>
+    /// <param name="delay">the delay for re-checking the producer function</param>
+    /// <param name="maxRetries">the maximum number of retries before ending the loop</param>
+    /// <param name="guaranteeMainThread">guarantees the task will be ran on the main thread</param>
+    /// <typeparam name="T">producer return type</typeparam>
+    public static void WaitUntil<T>(Func<T> producer, Func<T, bool> predicate, Action<T> callback, float delay = 0.1f, int maxRetries = int.MaxValue, bool guaranteeMainThread = false)
+    {
+        IEnumerator coroutine = LoopingCoroutineWrapper(producer, predicate, callback, delay, maxRetries);
+        if (guaranteeMainThread) MainThreadAnchor.ScheduleOnMainThread(() => AUCWrapper.StartCoroutine(coroutine));
+        else AUCWrapper.StartCoroutine(coroutine);
+    }
+
+    /// <summary>
+    /// Loops an action until it succeeds, then calls the callback
+    /// </summary>
+    /// <param name="action">the action to be ran until success</param>
+    /// <param name="callback">the action to be ran after success</param>
+    /// <param name="delay">the delay for re-running the action</param>
+    /// <param name="maxRetries">the maximum number of retries before ending the loop</param>
+    /// <param name="guaranteeMainThread">guarantees the action will be ran on the main thread</param>
+    public static void WaitUntil(Action action, Action callback, float delay = 0.1f, int maxRetries = int.MaxValue, bool guaranteeMainThread = false)
+    {
+        bool gate = false;
+        bool Predicate() => gate;
+
+        void ModifiedAction()
+        {
+            try
+            {
+                action();
+                gate = true;
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+
+        WaitUntil(ModifiedAction, Predicate, callback, delay, maxRetries, guaranteeMainThread);
+    }
+
+    /// <summary>
+    /// Loops an action until an indirect predicate function passes, then calls the callback function
+    /// </summary>
+    /// <param name="action">the action to be ran until the predicate passes</param>
+    /// <param name="predicate">the function to check for success</param>
+    /// <param name="callback">the action to be ran after passing predicate</param>
+    /// <param name="delay">the delay for re-running the action</param>
+    /// <param name="maxRetries">the maximum number of retries before ending the loop</param>
+    /// <param name="guaranteeMainThread">guarantees the action will be ran on the main thread</param>
+    public static void WaitUntil(Action action, Func<bool> predicate, Action callback, float delay = 0.1f, int maxRetries = int.MaxValue, bool guaranteeMainThread = false)
+    {
+        IEnumerator coroutine = LoopingCoroutineWrapper(action, predicate, callback, delay, maxRetries);
+        if (guaranteeMainThread) MainThreadAnchor.ScheduleOnMainThread(() => AUCWrapper.StartCoroutine(coroutine));
+        else AUCWrapper.StartCoroutine(coroutine);
     }
     
     /// <summary>
@@ -140,7 +212,7 @@ public class Async
         int intDelay = (int)(1000f * delay);
         await Task.Delay(new TimeSpan(0, 0, 0, 0, intDelay));
         try { action(); }
-        catch (Exception e) { VentLogger.Exception(e); }
+        catch (Exception e) { log.Exception(e); }
         while (repeat) {
             await Task.Delay(new TimeSpan(0, 0, 0, 0, intDelay));
             action();
@@ -152,10 +224,22 @@ public class Async
         int intDelay = (int)(1000f * delay);
         await Task.Delay(new TimeSpan(0, 0, 0, 0, intDelay));
         try { action(supplier()); }
-        catch (Exception e) { VentLogger.Exception(e); }
+        catch (Exception e) { log.Exception(e); }
         while (repeat) {
             await Task.Delay(new TimeSpan(0, 0, 0, 0, intDelay));
             action(supplier());
+        }
+    }
+
+    private static IEnumerator CoroutineWrapper(IEnumerator coroutine, float delay, bool repeat)
+    {
+        yield return new WaitForSeconds(delay);
+        AUCWrapper.StartCoroutine(coroutine);
+
+        while (repeat)
+        {
+            yield return new WaitForSeconds(delay);
+            AUCWrapper.StartCoroutine(coroutine);
         }
     }
     
@@ -195,6 +279,41 @@ public class Async
             consumer(producer());
         }
         
+        yield return null;
+    }
+    
+    private static IEnumerator LoopingCoroutineWrapper(Action action, Func<bool> predicate, Action callback, float delay, int maxRetries = int.MaxValue)
+    {
+        action();
+        int retries = 0;
+        
+        while (!predicate())
+        {
+            yield return new WaitForSeconds(delay);
+            action();
+            if (retries++ > maxRetries) yield return null;
+        }
+
+        callback();
+
+        yield return null;
+    }
+    
+    
+    private static IEnumerator LoopingCoroutineWrapper<T>(Func<T> producer, Func<T, bool> predicate, Action<T> consumer, float delay, int maxRetries = int.MaxValue)
+    {
+        T item = producer();
+        int retries = 0;
+        
+        while (!predicate(item))
+        {
+            yield return new WaitForSeconds(delay);
+            item = producer();
+            if (retries++ > maxRetries) yield return null;
+        }
+
+        consumer(item);
+
         yield return null;
     }
 }

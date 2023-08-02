@@ -1,9 +1,11 @@
 using UnityEngine;
+using VentLib.Utilities.Optionals;
 
 namespace VentLib.Options.Game;
 
 public class GameOptionProperties
 {
+    public UnityOptional<StringOption> UnityOptional;
     public StringOption Behaviour;
     public GameOption Source;
     public Transform Transform;
@@ -16,6 +18,7 @@ public class GameOptionProperties
     internal GameOptionProperties(GameOption option)
     {
         Source = option;
+        UnityOptional = Source.Behaviour;
         Behaviour = Source.Behaviour.Get();
         Transform = Behaviour.transform;
         SpriteRenderer = Transform.Find("Background").GetComponent<SpriteRenderer>();
@@ -23,6 +26,7 @@ public class GameOptionProperties
         Value = Transform.FindChild("Value_TMP");
         PlusButton = Transform.FindChild("Plus_TMP");
         MinusButton = Transform.FindChild("Minus_TMP");
+        option.Properties = CustomOptional<GameOptionProperties>.Of(this, item => item.Exists());
     }
 
     public void SetActive(bool active)
@@ -44,4 +48,6 @@ public class GameOptionProperties
     {
         SpriteRenderer.color = color;
     }
+
+    public bool Exists() => UnityOptional.Exists();
 }

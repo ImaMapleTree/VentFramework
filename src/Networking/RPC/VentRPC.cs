@@ -1,4 +1,3 @@
-#nullable enable
 using System.Reflection;
 using VentLib.Logging;
 using VentLib.Networking.RPC.Attributes;
@@ -10,10 +9,11 @@ namespace VentLib.Networking.RPC;
 
 public static class VentRPC
 {
+    private static readonly StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(VentRPC));
     [VentRPC(VentCall.SetControlFlag, RpcActors.Host, RpcActors.NonHosts)]
     public static void SetControlFlag(string assemblyName, int controlFlag)
     {
-        VentLogger.Trace($"SetControlFlag(assemblyName={assemblyName}, controlFlag={controlFlag})", "SetControlFlag");
+        log.Trace($"SetControlFlag(assemblyName={assemblyName}, controlFlag={controlFlag})", "SetControlFlag");
         Assembly? assembly = AssemblyUtils.FindAssemblyFromFullName(assemblyName);
         if (assembly == null) return;
         Vents.SetControlFlag(assembly, (VentControlFlag)controlFlag);

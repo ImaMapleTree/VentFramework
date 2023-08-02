@@ -1,6 +1,6 @@
 namespace VentLib.Utilities.Collections;
 
-public class Remote<T>
+public class Remote<T>: IRemote
 {
     private uint id;
     private UuidList<T> parentList;

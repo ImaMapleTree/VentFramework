@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 
 namespace VentLib.Networking.RPC.Attributes;
@@ -18,6 +17,11 @@ public class ModRPCAttribute : Attribute
         Senders = senders;
         Receivers = receivers;
         Invocation = invocation;
+    }
+    
+    public ModRPCAttribute(object call, RpcActors senders = RpcActors.Everyone, RpcActors receivers = RpcActors.Everyone, MethodInvocation invocation = MethodInvocation.ExecuteNever)
+        : this((uint)call, senders, receivers, invocation)
+    {
     }
 }
 

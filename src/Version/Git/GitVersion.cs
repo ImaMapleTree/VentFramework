@@ -17,6 +17,8 @@ public class GitVersion: Version
     public readonly string Sha;
     public readonly string Tag;
 
+    internal string? CommitDate;
+    internal string? RepositoryUrl;
     private static Type? _thisAssembly;
 
     internal GitVersion()
@@ -28,13 +30,14 @@ public class GitVersion: Version
         Branch = null!;
         Sha = null!;
         Tag = null!;
+        RepositoryUrl = null!;
     }
     
     public GitVersion(RlAssembly? targetAssembly = null)
     {
         targetAssembly ??= Vents.RootAssemby;
         _thisAssembly ??= AppDomain.CurrentDomain.GetAssemblies()
-           .Where(assembly => targetAssembly == null || assembly.FullName == targetAssembly.FullName)
+           .Where(assembly => assembly.FullName == targetAssembly.FullName)
            .SelectMany(assembly =>
            {
                try { return assembly.GetTypes(); }
@@ -53,13 +56,15 @@ public class GitVersion: Version
         PatchNumber = StaticValue(baseVersion, "Patch");
 
         CommitNumber = StaticValue(git, "Commit");
-        Branch = StaticValue(git, "Branch");
+        Branch = StaticValue(git, nameof(Branch));
 
-        Sha = StaticValue(git, "Sha");
-        Tag = StaticValue(git, "Tag");
+        Sha = StaticValue(git, nameof(Sha));
+        Tag = StaticValue(git, nameof(Tag));
+
+        CommitDate = StaticValue(git, nameof(CommitDate));
+        RepositoryUrl = StaticValue(git, nameof(RepositoryUrl));
     }
-
-    // TODO: Custom Git interface and Mod updater
+    
     private GitVersion(MessageReader reader)
     {
         MajorVersion = reader.ReadString();
@@ -72,6 +77,9 @@ public class GitVersion: Version
         Sha = reader.ReadString();
         Tag = reader.ReadString();
     }
+
+    public GitVersion Clone() => (GitVersion)this.MemberwiseClone();
+
     public override Version Read(MessageReader reader) => new GitVersion(reader);
 
     protected override void WriteInfo(MessageWriter writer)

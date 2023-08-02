@@ -12,6 +12,7 @@ namespace VentLib.Utilities.Debug.Profiling;
 
 public class Profiler
 {
+    private static StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(Profiler));
     public ProfilingSampler Sampler;
     public bool IsActive { get; private set;  }= true;
     protected readonly string Name;
@@ -44,7 +45,7 @@ public class Profiler
             return methodTimings.Add((DateTime.Now, profileInfo));
         }
 
-        public Sample StartQ(string? name = null)
+        public Sample Sampled(string? name = null)
         {
             if (!profiler.IsActive) return new Sample(profiler, uint.MaxValue);
             MethodBase? callingMethod = new StackFrame(1).GetMethod();
@@ -54,6 +55,7 @@ public class Profiler
             return new Sample(profiler, methodTimings.Add((DateTime.Now, profileInfo)));
         }
 
+        // ReSharper disable once MemberHidesStaticFromOuterClass
         public void Sample(Action action, string name)
         {
             uint id = profiler.Sampler.Start(name);
@@ -147,7 +149,7 @@ public class Profiler
 
     public void Display(TimeUnit unit = TimeUnit.Milliseconds, Sort sort = Sort.AvgTime)
     {
-        VentLogger.Debug($"Profiler {Name} Results:\n{GetCurrentData(unit, sort)}");
+        log.Debug($"Profiler {Name} Results:\n{GetCurrentData(unit, sort)}");
     }
 
     private static string CutoffDuration(double duration, TimeUnit unit)

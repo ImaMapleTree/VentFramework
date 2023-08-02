@@ -9,13 +9,13 @@ namespace VentLib.Options.Game.Patches;
 [HarmonyPatch(typeof(GameOptionsMenu), nameof(GameOptionsMenu.Start))]
 internal static class OptionOpenPatch
 {
-    public static UnityOptional<StringOption> template = UnityOptional<StringOption>.Null();
+    public static UnityOptional<StringOption> Template = UnityOptional<StringOption>.Null();
 
     internal static void Postfix(GameOptionsMenu __instance)
     {
-        if (template.Exists()) return;
-        template = UnityOptional<StringOption>.Of(Object.FindObjectsOfType<StringOption>().FirstOrDefault());
+        if (Template.Exists()) return;
+        Template = UnityOptional<StringOption>.Of(Object.FindObjectsOfType<StringOption>().FirstOrDefault());
         
-        if (template.Exists() && GameOptionController.Enabled) GameOptionController.HandleOpen();
+        if (Template.Exists() && GameOptionController.Enabled) GameOptionController.HandleOpen();
     }
 }

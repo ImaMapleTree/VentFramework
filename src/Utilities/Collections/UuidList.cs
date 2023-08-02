@@ -2,10 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using VentLib.Utilities.Extensions;
+using VentLib.Utilities.Optionals;
 
 namespace VentLib.Utilities.Collections;
 
-public class UuidList<T>: IEnumerable<T>
+public class UuidList<T>: IUuidList<T>
 {
     private List<PhantomEntry> items = new();
     public IEnumerator<T> GetEnumerator() => items.Select(pe => pe.Value).GetEnumerator();
@@ -30,7 +32,7 @@ public class UuidList<T>: IEnumerable<T>
 
     public void CopyTo(T[] array, int arrayIndex)
     {
-        Array.Copy(this.ToArray(), 0, array, arrayIndex, items.Count);
+        Array.Copy(items.Select(i => i.Value).ToArray(), 0, array, arrayIndex, items.Count);
     }
 
     public bool Remove(T item)
@@ -62,11 +64,18 @@ public class UuidList<T>: IEnumerable<T>
 
     public T Get(uint uuid) => items.First(pe => pe.ID == uuid).Value;
 
+    public Optional<uint> UuidOf(T item) => items.FirstOrOptional(pe => Equals(pe.Value, item)).Map(pe => pe.ID);
+    
     public int IndexOf(T item) => items.FindIndex(pe => Equals(pe.Value, item));
 
     public int IndexOf(uint uuid) => items.FindIndex(pe => pe.ID == uuid);
     
-    public void Insert(int index, T item) => items.Insert(index, new PhantomEntry(id++, item));
+    public uint Insert(int index, T item)
+    {
+        uint uuid = id++;
+        items.Insert(index, new PhantomEntry(uuid, item));
+        return uuid;
+    }
 
     public void RemoveAt(int index) => items.RemoveAt(index);
 

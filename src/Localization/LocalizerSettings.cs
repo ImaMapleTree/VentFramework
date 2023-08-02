@@ -9,7 +9,8 @@ namespace VentLib.Localization;
 
 public class LocalizerSettings
 {
-    private static string _languageFolder;
+    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+    private static readonly string LanguageFolder;
     public static DirectoryInfo LanguageDirectory { get; }
     
     static LocalizerSettings()
@@ -21,8 +22,8 @@ public class LocalizerSettings
             .IOSettings(settings => settings.UnknownValueAction = ADEAnswer.Allow)
             .BuildAndRegister(manager);
 
-        _languageFolder = languageFolderOption.GetValue<string>();
-        LanguageDirectory = new DirectoryInfo(_languageFolder);
+        LanguageFolder = languageFolderOption.GetValue<string>();
+        LanguageDirectory = new DirectoryInfo(LanguageFolder);
         if (!LanguageDirectory.Exists) LanguageDirectory.Create();
     }
 

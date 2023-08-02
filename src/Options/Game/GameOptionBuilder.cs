@@ -9,6 +9,7 @@ using VentLib.Options.Interfaces;
 using VentLib.Options.IO;
 using VentLib.Ranges;
 using VentLib.Utilities.Optionals;
+// ReSharper disable MethodOverloadWithOptionalParameter
 
 namespace VentLib.Options.Game;
 
@@ -38,7 +39,7 @@ public class GameOptionBuilder : IOptionBuilder<GameOptionBuilder>
 
     public GameOptionBuilder LocaleName(string qualifier)
     {
-        Option.name = Localizer.Get(Assembly.GetCallingAssembly()).Translate(qualifier);
+        Option.name = Localizer.Get(Assembly.GetCallingAssembly()).Translate(qualifier, translationCreationOption: TranslationCreationOption.CreateIfNull);
         Option.Key ??= qualifier;
         return this;
     }
@@ -239,6 +240,12 @@ public class GameOptionBuilder : IOptionBuilder<GameOptionBuilder>
     public GameOptionBuilder IsHeader(bool isHeader)
     {
         Option.IsHeader = isHeader;
+        return this;
+    }
+
+    public GameOptionBuilder IsTitle(bool isTitle)
+    {
+        Option.IsTitle = isTitle;
         return this;
     }
     

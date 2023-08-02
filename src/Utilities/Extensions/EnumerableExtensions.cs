@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
+using UnityEngine;
 using VentLib.Logging;
 using VentLib.Utilities.Optionals;
 using Object = UnityEngine.Object;
@@ -10,6 +12,7 @@ namespace VentLib.Utilities.Extensions;
 
 public static class EnumerableExtensions
 {
+    private static StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(EnumerableExtensions));
     /// <summary>
     /// Maps a sequence into a new type, keeping all non-null values.
     /// </summary>
@@ -108,6 +111,8 @@ public static class EnumerableExtensions
     public static Dictionary<TKey, TValue> ToDict<TSource, TKey, TValue>(this IEnumerable<TSource> source, Func<TSource, TKey> keyMapper, Func<TSource, TValue> valueMapper) where TKey: notnull
     {
         if (source == null) throw new ArgumentNullException(nameof(source));
+        if (keyMapper == null) throw new ArgumentNullException(nameof(keyMapper));
+        if (valueMapper == null) throw new ArgumentNullException(nameof(valueMapper));
         Dictionary<TKey, TValue> dictionary = new();
         source.Do(item => dictionary[keyMapper(item)] = valueMapper(item));
         return dictionary;
@@ -127,6 +132,8 @@ public static class EnumerableExtensions
     public static Dictionary<TKey, TValue> ToDict<TSource, TKey, TValue>(this IEnumerable<TSource> source, Func<TSource, int, TKey> keyMapper, Func<TSource, int, TValue> valueMapper) where TKey: notnull
     {
         if (source == null) throw new ArgumentNullException(nameof(source));
+        if (keyMapper == null) throw new ArgumentNullException(nameof(keyMapper));
+        if (valueMapper == null) throw new ArgumentNullException(nameof(valueMapper));
         Dictionary<TKey, TValue> dictionary = new();
         source.ForEach((item, i) => dictionary[keyMapper(item, i)] = valueMapper(item, i));
         return dictionary;
@@ -142,6 +149,7 @@ public static class EnumerableExtensions
     public static void ForEach<TSource>(this IEnumerable<TSource> source, Action<TSource> action)
     {
         if (source == null) throw new ArgumentNullException(nameof(source));
+        if (action == null) throw new ArgumentNullException(nameof(action));
         IEnumerator<TSource> enumerator = source.GetEnumerator();
         while (enumerator.MoveNext())
             action(enumerator.Current);
@@ -158,6 +166,7 @@ public static class EnumerableExtensions
     public static void ForEach<TSource>(this IEnumerable<TSource> source, Action<TSource, int> action)
     {
         if (source == null) throw new ArgumentNullException(nameof(source));
+        if (action == null) throw new ArgumentNullException(nameof(action));
         int i = 0;
         IEnumerator<TSource> enumerator = source.GetEnumerator();
         while (enumerator.MoveNext())
@@ -196,6 +205,7 @@ public static class EnumerableExtensions
     public static Optional<TSource> FirstOrOptional<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
     {
         if (source == null) throw new ArgumentNullException(nameof(source));
+        if (predicate == null) throw new ArgumentNullException(nameof(predicate));
         try
         {
             return Optional<TSource>.NonNull(source.First(predicate));
@@ -204,6 +214,59 @@ public static class EnumerableExtensions
         {
             return Optional<TSource>.Null();
         }
+    }
+
+    /// <summary>
+    /// Returns the index of the first element in a sequence that matches a specific predicate, or -1 if no such item exists
+    /// </summary>
+    /// <param name="source">A sequence of values</param>
+    /// <param name="predicate">A function to test each element for a condition</param>
+    /// <typeparam name="TSource">The type of elemetns</typeparam>
+    /// <returns>The index of the first matching element, or -1 if no matching element exists</returns>
+    /// <exception cref="ArgumentNullException">source or predicate functions are null</exception>
+    public static int IndexOf<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
+    {
+        if (source == null) throw new ArgumentNullException(nameof(source));
+        if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+        int index = 0;
+        foreach (var item in source) {
+            if (predicate.Invoke(item)) {
+                return index;
+            }
+            index++;
+        }
+        return -1;
+    }
+
+    public static bool Majority<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, bool trueWhenFiftyFifty = true)
+    {
+        if (source == null) throw new ArgumentNullException(nameof(source));
+        if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+
+        if (source is not ICollection collection) collection = source.ToArray();
+
+        int threshold = Mathf.RoundToInt(collection.Count / 2f);
+        int matching = 0;
+        foreach (TSource item in collection)
+        {
+            if (predicate(item)) matching++;
+            if (threshold % 2 == 1)
+            {
+                if (matching >= threshold) return true;
+            }
+            else
+            {
+                if (matching > threshold) return true;
+                if (matching == threshold && trueWhenFiftyFifty) return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static string Fuse<TSource>(this IEnumerable<TSource> source, string delimiter = ", ")
+    {
+        return string.Join(delimiter, source);
     }
 
     public static IEnumerable<TSource> Sorted<TSource, TComparable>(this IEnumerable<TSource> source, Func<TSource, TComparable> sortMapper) where TComparable : IComparable
@@ -215,7 +278,7 @@ public static class EnumerableExtensions
 
     internal static void Debug<TSource>(this IEnumerable<TSource> source) where TSource : Object
     {
-        VentLogger.Fatal($"Debugging: {source.Select(s => (s.name, s.TypeName())).StrJoin()}");
+        log.Fatal($"Debugging: {source.Select(s => (s.name, s.TypeName())).StrJoin()}");
     }
     
     
@@ -258,7 +321,7 @@ public static class EnumerableExtensions
             Swap(arr, i, j);
         }
         Swap(arr, i + 1, high);
-        return (i + 1);
+        return i + 1;
     }
  
     /* The main function that implements QuickSort

@@ -9,7 +9,7 @@ public class IOSettings
 {
     public Optional<Option> Source = Optional<Option>.Null();
 
-    public ADEAnswer UnknownValueAction { get; set; } = ADEAnswer.ThrowException;
+    public ADEAnswer UnknownValueAction { get; set; } = ADEAnswer.UseDefault;
 
     public IOptionValueLoader OptionValueLoader { get; set; } = new OptionValueLoader();
 }

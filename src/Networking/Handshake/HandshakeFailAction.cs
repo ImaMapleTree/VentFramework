@@ -5,5 +5,6 @@ public enum HandshakeResult
     PassDoNothing,
     FailDoNothing,
     DisableRPC,
-    Kick
+    Kick,
+    Ban
 }
