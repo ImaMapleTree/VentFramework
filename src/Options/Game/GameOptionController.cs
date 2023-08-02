@@ -17,6 +17,7 @@ namespace VentLib.Options.Game;
 [LoadStatic]
 public static class GameOptionController
 {
+    private static readonly StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(GameOptionController));
     private static readonly IGameOptionTab[] BuiltinGameTabs = { new VanillaMainTab(), new VanillaRoleTab()};
     private static readonly OrderedSet<GameOptionTab> Tabs = new();
     public static RenderOptions RenderOptions { get; set; } = new();
@@ -100,7 +101,7 @@ public static class GameOptionController
     {
         if (!_lastInitialized.IsAlive())
         {
-            VentLogger.Warn("Unable to Refresh Option Controller", "OptionController");
+            log.Warn("Unable to Refresh Option Controller", "OptionController");
             return;
         }
         AllTabs().ForEach(tab => tab.Setup(_lastInitialized));

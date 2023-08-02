@@ -4,7 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using VentLib.Logging;
+using VentLib.Logging.Default;
 using VentLib.Options.Game.Events;
 using VentLib.Options.Interfaces;
 using VentLib.Options.IO;
@@ -16,14 +16,12 @@ namespace VentLib.Options;
 
 public class OptionManager
 {
-    private static int dumpCounter = 0;
-    
     public static string OptionPath => "BepInEx/config/";
     public static string DefaultFile = "options.txt";
     internal static Dictionary<Assembly, List<OptionManager>> Managers = new();
     internal static Dictionary<String, Option> AllOptions = new();
 
-    private readonly EssFile _essFile = new();
+    private readonly EssFile essFile = new();
     private readonly OrderedDictionary<string, Option> options = new();
     private FileInfo file;
     
@@ -39,7 +37,7 @@ public class OptionManager
         if (!optionDirectory.Exists) optionDirectory.Create();
         filePath = path;
         file = optionDirectory.GetFile(path);
-        _essFile.ParseFile(file.FullName);
+        essFile.ParseFile(file.FullName);
     }
 
     public static OptionManager GetManager(Assembly? assembly = null, string? file = null)
@@ -60,6 +58,7 @@ public class OptionManager
         return Managers.GetOrCompute(assembly, () => new List<OptionManager>());
     }
 
+    // ReSharper disable once ReturnTypeCanBeNotNullable
     public Option? GetOption(string qualifier)
     {
         return GetOptions().FirstOrOptional(opt => opt.Qualifier() == qualifier)
@@ -76,7 +75,7 @@ public class OptionManager
         option.RegisterEventHandler(ev =>
         {
             if (ev is not (OptionValueIncrementEvent or OptionValueDecrementEvent)) return;
-            _essFile.WriteToCache(ev.Source());
+            essFile.WriteToCache(ev.Source());
             DelaySave(updateAll: false);
         });
 
@@ -94,28 +93,28 @@ public class OptionManager
     {
         try
         {
-            _essFile.ApplyToOption(option);
+            essFile.ApplyToOption(option);
         }
         catch (DataException)
         {
             string createString = create ? ". Attempting to recreate in file." : ".";
-            VentLogger.Warn($"Failed to load option ({option.Qualifier()})" + createString);
+            NoDepLogger.Warn($"Failed to load option ({option.Qualifier()})" + createString);
             if (!create) return;
-            _essFile.WriteToCache(option);
+            essFile.WriteToCache(option);
             DelaySave();
         }
         catch (Exception exception)
         {
-            VentLogger.Exception(exception, $"Error loading option ({option.Qualifier()}).");
+            NoDepLogger.Exception($"Error loading option ({option.Qualifier()}).", exception);
         }
     }
 
     internal void SaveAll(bool updateAll = true)
     {
-        VentLogger.Trace($"Saving Options to \"{filePath}\"", "OptionSave");
-        if (updateAll) GetOptions().ForEach(o => _essFile.WriteToCache(o));
-        _essFile.Dump(file.FullName);
-        VentLogger.Trace("Saved Options", "OptionSave");
+        NoDepLogger.Trace($"Saving Options to \"{filePath}\"", "OptionSave");
+        if (updateAll) GetOptions().ForEach(o => essFile.WriteToCache(o));
+        essFile.Dump(file.FullName);
+        NoDepLogger.Trace("Saved Options", "OptionSave");
     }
 
     public void DelaySave(float delay = 10f, bool updateAll = true)

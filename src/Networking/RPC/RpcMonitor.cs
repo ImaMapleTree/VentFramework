@@ -6,19 +6,21 @@ namespace VentLib.Networking.RPC;
 
 public static class RpcMonitor
 {
-    private static bool enabled;
-    private static Remote<Action<RpcMeta>> metaRemote;
+    private static readonly StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(RpcMonitor));
+    private static bool _enabled;
+    // ReSharper disable once NotAccessedField.Local
+    private static Remote<Action<RpcMeta>>? _metaRemote;
 
     public static void Enable()
     {
-        enabled = true;
-        metaRemote = RpcMeta.AddSubscriber(MonitorRpc);
+        _enabled = true;
+        _metaRemote = RpcMeta.AddSubscriber(MonitorRpc);
     }
 
     private static void MonitorRpc(RpcMeta meta)
     {
-        if (!enabled) return;
+        if (!_enabled) return;
         if (meta.PacketSize <= NetworkRules.MaxPacketSize) return;
-        VentLogger.Warn($"Found RPC exceeding maximum packet size ({meta.PacketSize} > {NetworkRules.MaxPacketSize}). Full Info={meta}");
+        log.Warn($"Found RPC exceeding maximum packet size ({meta.PacketSize} > {NetworkRules.MaxPacketSize}). Full Info={meta}");
     }
 }

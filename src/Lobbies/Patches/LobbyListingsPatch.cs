@@ -12,6 +12,7 @@ namespace VentLib.Lobbies.Patches;
 [HarmonyPatch(typeof(FindAGameManager), nameof(FindAGameManager.HandleList))]
 internal class LobbyListingsPatch
 {
+    private static StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(LobbyListingsPatch));
     internal static List<(int, MatchMakerGameButton?)> ModdedGames = new();
 
     internal static void Prefix(FindAGameManager __instance)
@@ -24,7 +25,7 @@ internal class LobbyListingsPatch
         ModdedGames.Clear();
         availableGames.ToArray().Do(game =>
         {
-            VentLogger.Debug($"Game: {game.HostName} | {game.GameId} | {game.IPString}");
+            log.Debug($"Game: {game.HostName} | {game.GameId} | {game.IPString}");
             var button = __instance.buttonPool.activeChildren
                 .ToArray()
                 .ToList()
@@ -39,6 +40,7 @@ internal class LobbyListingsPatch
 [HarmonyPatch(typeof(FindAGameManager), nameof(FindAGameManager.Start))]
 internal class LobbyListingUIPatch
 {
+    private static StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(LobbyListingUIPatch));
     private static bool _option = true;
 
     internal static void Postfix(FindAGameManager __instance)
@@ -83,11 +85,11 @@ internal class LobbyListingUIPatch
 
         foreach (var kv in textComponents)
         {
-            VentLogger.Fatal($"Name: {kv.Key} | Value: {kv.Value.TypeName()}");
+            log.Fatal($"Name: {kv.Key} | Value: {kv.Value.TypeName()}");
         }
 
         var c = textComponents["FilterTags"].GetComponentsInChildren<Component>().Select(c => (c.name, c.TypeName())).StrJoin();
-        VentLogger.Fatal($"C: {c}");
+        log.Fatal($"C: {c}");
         // Moving map to left side
         textComponents["MapPicker"].FindChild("Title_TMP").localPosition -= new Vector3(4.7f, 0);
         mapButton.transform.localPosition -= new Vector3(6.5f, 0.48f);

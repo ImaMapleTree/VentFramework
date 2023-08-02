@@ -9,6 +9,7 @@ namespace VentLib.Networking.Batches;
 
 public sealed class BatchReader
 {
+    private static readonly StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(BatchReader));
     private readonly MessageReader[] readerBuffer = new MessageReader[65535];
     private int realCapacity;
     private int readerIndex;
@@ -36,7 +37,7 @@ public sealed class BatchReader
 
     internal object Initialize(Type targetType)
     {
-        VentLogger.Trace($"Initializing Batch Type {targetType}");
+        log.Trace($"Initializing Batch Type {targetType}");
         ConstructorInfo? constructor = AccessTools.Constructor(targetType);
         if (constructor == null) 
             throw new ConstraintException($"Unable to initialize BatchType: {targetType}. Class must have a default no-args constructor.");

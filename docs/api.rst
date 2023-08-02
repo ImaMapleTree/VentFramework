@@ -57,13 +57,13 @@ The following parameters are supported by ModRPC:
     // Sends / receives a message
     [ModRPC((uint)MyRPCs.PublicSendMessage)]
     public void AnyoneSendMessage(string message) {
-        VentLogger.Info($"Message Received: {message}");
+        log.Info($"Message Received: {message}");
     }
 
     // Allows only host to send a message, and allows for only non-hosts to receive the message
     [ModRPC((uint)MyRPCs.HostSendMsg, senders: RpcActors.Host, receivers: RpcActors.NonHost]
     public void HostMessage(string message) {
-        VentLogger.Info($"I am not the host and I received this: \"{message}\" message.);
+        log.Info($"I am not the host and I received this: \"{message}\" message.);
     }
 
 Interfaces

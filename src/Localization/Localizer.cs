@@ -16,6 +16,7 @@ namespace VentLib.Localization;
 
 public class Localizer
 {
+    private static readonly StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(Localizer));
     internal static readonly Dictionary<Assembly, Localizer> Localizers = new();
 
     public Dictionary<string, Language> Languages { get; }
@@ -91,10 +92,10 @@ public class Localizer
     { 
         callingType ??= AccessTools.GetOutsideCaller().DeclaringType;
 
-        if (callingType == null) return Translate(qualifier, defaultValue!, useCache, translationCreationOption);
+        if (callingType == null) return Translate(qualifier, defaultValue, useCache, translationCreationOption);
         string? baseQualifier = LocalizedAttribute.ClassQualifiers.GetValueOrDefault(callingType);
-        if (baseQualifier == null) return Translate(qualifier, defaultValue!, useCache, translationCreationOption);
-        return Translate(baseQualifier + "." + qualifier, defaultValue!, useCache, translationCreationOption);
+        if (baseQualifier == null) return Translate(qualifier, defaultValue, useCache, translationCreationOption);
+        return Translate(baseQualifier + "." + qualifier, defaultValue, useCache, translationCreationOption);
     }
 
     public string Translate(string qualifier, string defaultValue = "<{}>", bool useCache = true, TranslationCreationOption translationCreationOption = TranslationCreationOption.SaveIfNull)
@@ -175,7 +176,7 @@ public class Localizer
     {
         return directory.EnumerateFiles("lang_*").SelectWhere(f =>
         {
-            VentLogger.Info($"Loading Language File: {f.Name}");
+            log.Info($"Loading Language File: {f.Name}");
             try
             {
                 StreamReader reader = new(f.Open(FileMode.OpenOrCreate), Encoding.UTF8);
@@ -186,7 +187,7 @@ public class Localizer
                 language.Localizer = this;
                 return language;
             } catch (Exception e) {
-                VentLogger.Exception(e, $"Unable to load Language File \"{f.Name}\": ");
+                log.Exception($"Unable to load Language File \"{f.Name}\": ", e);
                 return null;
             }
         }).ToList();

@@ -37,7 +37,7 @@ public class GitVersion: Version
     {
         targetAssembly ??= Vents.RootAssemby;
         _thisAssembly ??= AppDomain.CurrentDomain.GetAssemblies()
-           .Where(assembly => targetAssembly == null || assembly.FullName == targetAssembly.FullName)
+           .Where(assembly => assembly.FullName == targetAssembly.FullName)
            .SelectMany(assembly =>
            {
                try { return assembly.GetTypes(); }

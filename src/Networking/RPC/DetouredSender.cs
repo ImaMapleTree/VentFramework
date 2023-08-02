@@ -15,6 +15,7 @@ namespace VentLib.Networking.RPC;
 
 internal class DetouredSender
 {
+    private static readonly StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(DetouredSender));
     private readonly int uuid = UnityEngine.Random.RandomRangeInt(0, 999999);
     private int localSendCount;
     private readonly ModRPC modRPC;
@@ -70,7 +71,6 @@ internal class DetouredSender
     {
         localSendCount++;
         uint batchId = BatchWriter.BatchId++;
-        VentLogger.Fatal($"Arg Length: {args.Length}");
         MonoRpc monoRpc = RpcV3.Immediate(PlayerControl.LocalPlayer.NetId, 204).Protected(false).ThreadSafe(true)
             .Write(callId)
             .Write((byte)receivers)
@@ -119,13 +119,13 @@ internal class DetouredSender
         string senderString = AmongUsClient.Instance.AmHost ? "Host" : "NonHost";
         int clientId = PlayerControl.LocalPlayer.GetClientId();
         if (targets != null) {
-            VentLogger.Debug($"[{localSendCount}::{uuid}::{RpcHookHelper.GlobalSendCount}](Client: {clientId}) Sending RPC ({callId}) as {senderString} to {targets.StrJoin()} | {senders}", "DetouredSender");
+            log.Debug($"[{localSendCount}::{uuid}::{RpcHookHelper.GlobalSendCount}](Client: {clientId}) Sending RPC ({callId}) as {senderString} to {targets.StrJoin()} | {senders}", "DetouredSender");
             monoRpc.SendInclusive(blockedClients == null ? targets : targets.Except(blockedClients).ToArray());
         } else if (blockedClients != null) {
-            VentLogger.Debug($"[{localSendCount}::{uuid}::{RpcHookHelper.GlobalSendCount}](Client: {clientId}) Sending RPC ({callId}) as {senderString} to all except {blockedClients.StrJoin()} | {senders}", "DetouredSender");
+            log.Debug($"[{localSendCount}::{uuid}::{RpcHookHelper.GlobalSendCount}](Client: {clientId}) Sending RPC ({callId}) as {senderString} to all except {blockedClients.StrJoin()} | {senders}", "DetouredSender");
             monoRpc.SendExcluding(blockedClients);
         } else {
-            VentLogger.Debug($"[{localSendCount}::{uuid}::{RpcHookHelper.GlobalSendCount}] (Client: {clientId}) Sending RPC ({callId}) as {senderString} to all | {senders}", "DetouredSender");
+            log.Debug($"[{localSendCount}::{uuid}::{RpcHookHelper.GlobalSendCount}] (Client: {clientId}) Sending RPC ({callId}) as {senderString} to all | {senders}", "DetouredSender");
             monoRpc.Send();
         }
     }

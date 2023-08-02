@@ -7,12 +7,13 @@ namespace VentLib.Lobbies.Patches;
 
 internal class LobbyStatusPatches
 {
+    private static readonly StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(LobbyStatusPatches));
     [QuickPrefix(typeof(AmongUsClient), nameof(AmongUsClient.StartGame))]
     private static void UpdateStatusInGame(AmongUsClient __instance)
     {
         if (!__instance.AmHost) return;
         if (!NetworkRules.AllowRoomDiscovery) return;
-        VentLogger.Info($"Updating Lobby Status: {LobbyStatus.InGame}", "LobbyStatus");
+        log.Info($"Updating Lobby Status: {LobbyStatus.InGame}", "LobbyStatus");
         LobbyChecker.UpdateModdedLobby(__instance.GameId, LobbyStatus.InGame);
     }
     
@@ -21,7 +22,7 @@ internal class LobbyStatusPatches
     {
         if (reason is DisconnectReasons.NewConnection || !__instance.AmHost) return;
         if (!NetworkRules.AllowRoomDiscovery) return;
-        VentLogger.Info($"Updating Lobby Status: {LobbyStatus.Closed}", "LobbyStatus");
+        log.Info($"Updating Lobby Status: {LobbyStatus.Closed}", "LobbyStatus");
         LobbyChecker.UpdateModdedLobby(__instance.GameId, LobbyStatus.Closed);
     }
     
@@ -30,7 +31,7 @@ internal class LobbyStatusPatches
     {
         if (!AmongUsClient.Instance.AmHost) return;
         if (!NetworkRules.AllowRoomDiscovery) return;
-        VentLogger.Info($"Updating Lobby Status: {LobbyStatus.Open}", "LobbyStatus");
+        log.Info($"Updating Lobby Status: {LobbyStatus.Open}", "LobbyStatus");
         LobbyChecker.UpdateModdedLobby(AmongUsClient.Instance.GameId, LobbyStatus.Open);
     }
 }

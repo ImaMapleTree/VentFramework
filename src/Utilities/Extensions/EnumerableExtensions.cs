@@ -12,6 +12,7 @@ namespace VentLib.Utilities.Extensions;
 
 public static class EnumerableExtensions
 {
+    private static StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(EnumerableExtensions));
     /// <summary>
     /// Maps a sequence into a new type, keeping all non-null values.
     /// </summary>
@@ -277,7 +278,7 @@ public static class EnumerableExtensions
 
     internal static void Debug<TSource>(this IEnumerable<TSource> source) where TSource : Object
     {
-        VentLogger.Fatal($"Debugging: {source.Select(s => (s.name, s.TypeName())).StrJoin()}");
+        log.Fatal($"Debugging: {source.Select(s => (s.name, s.TypeName())).StrJoin()}");
     }
     
     

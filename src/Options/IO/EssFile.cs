@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Text.RegularExpressions;
 using VentLib.Logging;
+using VentLib.Logging.Default;
 using VentLib.Options.Processors;
 using VentLib.Utilities.Collections;
 using VentLib.Utilities.Extensions;
@@ -18,8 +19,8 @@ public class EssFile
     private List<OrderedDictionary<EssKey, EssValue>> parents = null!;
     private string? parsingDescription;
 
-    private OrderedDictionary<EssKey, EssValue> innerDictionary;
-    private Dictionary<string, (EssKey, EssValue)> flatDictionary;
+    private OrderedDictionary<EssKey, EssValue> innerDictionary = null!;
+    private Dictionary<string, (EssKey, EssValue)> flatDictionary = null!;
 
     public static EssFile FromPath(string path)
     {
@@ -53,7 +54,7 @@ public class EssFile
         try
         {
             writer = new(File.Open(path, FileMode.Create));
-            innerDictionary.ForEach((kvp, i) => Dump(kvp.Key, kvp.Value, writer, 0, true));
+            innerDictionary.ForEach((kvp, _) => Dump(kvp.Key, kvp.Value, writer, 0, true));
         }
         finally
         {
@@ -70,7 +71,7 @@ public class EssFile
         
         key.Description?.Split("\n").ForEach(l => writer.WriteLine($"{descriptionPrefix}{l}"));
 
-        VentLogger.Log(LogLevel.All, $"{optionPrefix}{key.Key}: {essValue.Value}");
+        NoDepLogger.Log(LogLevel.All, $"{optionPrefix}{key.Key}: {essValue.Value}");
         writer.WriteLine($"{optionPrefix}{key.Key}: {essValue.Value}");
         essValue.Child.ForEach(kvp => Dump(kvp.Key, kvp.Value, writer, level + 1));
         

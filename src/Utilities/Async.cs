@@ -3,6 +3,7 @@ using System.Collections;
 using System.Threading.Tasks;
 using UnityEngine;
 using VentLib.Logging;
+
 // ReSharper disable InconsistentNaming
 
 // ReSharper disable LoopVariableIsNeverChangedInsideLoop
@@ -11,6 +12,7 @@ namespace VentLib.Utilities;
 
 public class Async
 {
+    private static StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(Async));
     internal static AUCWrapper AUCWrapper { get; } = new();
 
     /// <summary>
@@ -69,7 +71,7 @@ public class Async
     /// <param name="coroutine">Coroutine to run</param>
     /// <param name="delay">Delay to wait until running</param>
     /// <param name="repeat">If the coroutine should repeat continuously</param>
-    public static async void Schedule(IEnumerator coroutine, float delay, bool repeat = false)
+    public static void Schedule(IEnumerator coroutine, float delay, bool repeat = false)
     {
         AUCWrapper.StartCoroutine(CoroutineWrapper(coroutine, delay, repeat));
     }
@@ -210,7 +212,7 @@ public class Async
         int intDelay = (int)(1000f * delay);
         await Task.Delay(new TimeSpan(0, 0, 0, 0, intDelay));
         try { action(); }
-        catch (Exception e) { VentLogger.Exception(e); }
+        catch (Exception e) { log.Exception(e); }
         while (repeat) {
             await Task.Delay(new TimeSpan(0, 0, 0, 0, intDelay));
             action();
@@ -222,7 +224,7 @@ public class Async
         int intDelay = (int)(1000f * delay);
         await Task.Delay(new TimeSpan(0, 0, 0, 0, intDelay));
         try { action(supplier()); }
-        catch (Exception e) { VentLogger.Exception(e); }
+        catch (Exception e) { log.Exception(e); }
         while (repeat) {
             await Task.Delay(new TimeSpan(0, 0, 0, 0, intDelay));
             action(supplier());

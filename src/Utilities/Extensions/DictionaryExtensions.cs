@@ -1,5 +1,7 @@
+extern alias JetbrainsAnnotations;
 using System;
 using System.Collections.Generic;
+using JetbrainsAnnotations::JetBrains.Annotations;
 using VentLib.Utilities.Optionals;
 
 namespace VentLib.Utilities.Extensions;
@@ -17,6 +19,7 @@ public static class DictionaryExtensions
         return !dictionary.TryGetValue(key, out TValue? value) ? Optional<TValue>.Null() : Optional<TValue>.NonNull(value);
     }
 
+    [UsedImplicitly]
     private static TValue? GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key) where TKey : notnull
     {
         return dictionary.TryGetValue(key, out TValue? value) ? value : default;

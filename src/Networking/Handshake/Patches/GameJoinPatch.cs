@@ -9,7 +9,8 @@ namespace VentLib.Networking.Handshake.Patches;
 [HarmonyPatch(typeof(AmongUsClient), nameof(AmongUsClient.OnGameJoined))]
 internal static class GameJoinPatch
 {
-    private static void Prefix(AmongUsClient __instance)
+    private static readonly StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(GameJoinPatch));
+    public static void Prefix(AmongUsClient __instance)
     {
         HandleRpcPatch.AumUsers.Clear();
         foreach (Assembly assembly in Vents.RegisteredAssemblies.Keys)
@@ -20,6 +21,6 @@ internal static class GameJoinPatch
             Vents.VersionControl.PlayerVersions.Clear();
             Vents.VersionControl.PlayerVersions[0] = VersionControl.Instance.Version ?? new NoVersion();
         }
-        VentLogger.Info("Refreshed Assembly Flags", "VentLib");
+        log.Info("Refreshed Assembly Flags", "VentLib");
     }
 }

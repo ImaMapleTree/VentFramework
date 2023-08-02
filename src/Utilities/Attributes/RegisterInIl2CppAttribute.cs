@@ -14,6 +14,7 @@ using Il2CppInterop.Runtime.Injection;
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class RegisterInIl2CppAttribute : Attribute
 {
+    private static StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(RegisterInIl2CppAttribute));
     private static readonly HashSet<Assembly> RegisteredAssemblies = new();
 
     /// <summary>
@@ -57,7 +58,7 @@ public sealed class RegisterInIl2CppAttribute : Attribute
         }
         catch (Exception e)
         {
-            VentLogger.Warn($"Failed to register {type.FullDescription()}: {e}");
+            log.Warn($"Failed to register {type.FullDescription()}: {e}");
         }
     }
 

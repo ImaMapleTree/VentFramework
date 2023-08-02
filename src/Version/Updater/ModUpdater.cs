@@ -5,7 +5,6 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Il2CppSystem.Threading;
 using VentLib.Logging;
 using VentLib.Utilities.Extensions;
 using VentLib.Version.Git;
@@ -15,6 +14,7 @@ namespace VentLib.Version.Updater;
 
 public class ModUpdater
 {
+    private static StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(ModUpdater));
     private static Regex _regex = new("/github\\.com\\/(.*)\\/(.*)\\.git");
     private static DirectoryInfo _backupsDirectory = new("Backups");
     
@@ -66,7 +66,7 @@ public class ModUpdater
     {
         if (Latest == null)
         {
-            VentLogger.Warn("Update Metadata is not present. Make sure to call & wait-for ModUpdater.EstablishConnection()");
+            log.Warn("Update Metadata is not present. Make sure to call & wait-for ModUpdater.EstablishConnection()");
             return null;
         }
         
@@ -76,7 +76,7 @@ public class ModUpdater
         UploadedAsset? dllAsset = Latest!.GetDLLAsset($"{assemblyFileName}.dll");
         if (dllAsset != null) return Update(assemblyToUpdate, dllAsset, errorCallback);
         
-        VentLogger.Warn("Cannot download update! No update dll found attached to release!");
+        log.Warn("Cannot download update! No update dll found attached to release!");
         return null;
     }
 
@@ -88,10 +88,10 @@ public class ModUpdater
     private void ReleaseCallback(Release release)
     {
         Latest = release;
-        VentLogger.High($"Retrieved Release Metadata... ({release.TagName} (Created At: {release.CreatedAt})", "ReleaseChecker");
+        log.High($"Retrieved Release Metadata... ({release.TagName} (Created At: {release.CreatedAt})", "ReleaseChecker");
         DateTime localCommitTime = DateTime.Parse(currentVersion.CommitDate!).ToUniversalTime();
         HasUpdate = IsReleaseNewer(release.CreatedAt, localCommitTime);
-        if (HasUpdate) VentLogger.High($"New Release Found! {release.Name} ({release.TagName})", "ReleaseChecker");
+        if (HasUpdate) log.High($"New Release Found! {release.Name} ({release.TagName})", "ReleaseChecker");
         releaseCallbacks.Where(c => !c.onlyTriggerUpdate || HasUpdate).ForEach(c => c.Item2(release));
     }
 
@@ -102,7 +102,7 @@ public class ModUpdater
         FileInfo rootFile = new(assemblyLocation);
         if (!rootFile.Exists)
         {
-            VentLogger.Error("Unable to complete mod update. Could not get location of updated assembly!");
+            log.Exception("Unable to complete mod update. Could not get location of updated assembly!");
             return;
         }
 
@@ -121,7 +121,7 @@ public class ModUpdater
             }
             catch (Exception ex)
             {
-                VentLogger.Exception(ex, $"Critical Error! Could not move file {assemblyLocation} to {newLocation}. Aborting and deleting downloaded file");
+                log.Exception($"Critical Error! Could not move file {assemblyLocation} to {newLocation}. Aborting and deleting downloaded file", ex);
                 downloadedFile.Delete();
                 errorCallback?.Invoke(ex);
                 return;
@@ -129,7 +129,7 @@ public class ModUpdater
         }
 
         downloadedFile.MoveTo(assemblyLocation);
-        VentLogger.High($"Finished Updating: {rootFile}", "ModUpdater");
+        log.High($"Finished Updating: {rootFile}", "ModUpdater");
     }
 
     private static bool IsReleaseNewer(DateTime releaseTime, DateTime localCommitTime)

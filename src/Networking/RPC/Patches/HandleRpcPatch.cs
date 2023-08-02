@@ -3,7 +3,6 @@ using System.Linq;
 using HarmonyLib;
 using Hazel;
 using InnerNet;
-using VentLib.Logging;
 using VentLib.Networking.Handshake;
 using VentLib.Version;
 
@@ -24,7 +23,7 @@ public class HandleRpcPatch
             byte playerId = reader.ReadByte();
             PlayerControl? player = PlayerControl.AllPlayerControls.ToArray().FirstOrDefault(p => p.PlayerId == playerId);
             if (player == null) return false;
-            if (AumUsers.Add(player.FriendCode)) VentLogger.SendInGame($"{player.Data.PlayerName} has joined the lobby with AmongUsMenu.");
+            //if (AumUsers.Add(player.FriendCode)) log.SendInGame($"{player.Data.PlayerName} has joined the lobby with AmongUsMenu.");
             Vents.LastSenders[(uint)VentCall.VersionCheck] = player;
             _modRPC.InvokeTrampoline(new AmongUsMenuVersion());
             return false;

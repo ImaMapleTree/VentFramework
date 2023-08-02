@@ -12,6 +12,7 @@ namespace VentLib.Utilities.Harmony;
 
 public class HarmonyQuickPatcher
 {
+    private static StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(HarmonyQuickPatcher));
     private static Dictionary<Assembly, HarmonyLib.Harmony> _harmonyInstances = new();
 
     public static void ApplyHarmonyPatches(Assembly assembly)
@@ -27,7 +28,7 @@ public class HarmonyQuickPatcher
                 HarmonyMethod harmonyMethod = new(method, priority: harmonyAttribute.Priority);
                 MethodBase targetMethod = AccessTools.Method(harmonyAttribute.TargetType, harmonyAttribute.MethodName);
 
-                VentLogger.Trace($"Quick Patching => {targetMethod.Name} ({harmonyAttribute.TargetType})", "HarmonyQuickPatcher");
+                log.Trace($"Quick Patching => {targetMethod.Name} ({harmonyAttribute.TargetType})", "HarmonyQuickPatcher");
                 
                 switch (harmonyAttribute.PatchType)
                 {

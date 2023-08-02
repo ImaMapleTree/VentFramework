@@ -13,11 +13,12 @@ namespace VentLib.Networking.RPC;
 
 public class RpcBody
 {
+    private static StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(RpcBody));
     private static readonly Dictionary<Type, IRpcInserter> Inserters = new();
     private static readonly Dictionary<Type, IPackedInserter> PackedInserters = new();
 
     internal List<object> Arguments = new();
-    private List<IRpcInserter> _inserters = new();
+    private List<IRpcInserter> inserters = new();
 
     static RpcBody()
     {
@@ -41,77 +42,77 @@ public class RpcBody
     {
         if (obj == null) throw new ArgumentNullException(nameof(obj), "Cannot write null objects!");
         Arguments.Add(obj);
-        _inserters.Add(RpcWritableInserter.Instance);
+        inserters.Add(RpcWritableInserter.Instance);
         return this;
     }
     
     public RpcBody Write(bool b)
     {
         Arguments.Add(b);
-        _inserters.Add(BoolInserter.Instance);
+        inserters.Add(BoolInserter.Instance);
         return this;
     }
     
     public RpcBody Write(byte b)
     {
         Arguments.Add(b);
-        _inserters.Add(ByteInserter.Instance);
+        inserters.Add(ByteInserter.Instance);
         return this;
     }
     
     public RpcBody Write(float f)
     {
         Arguments.Add(f);
-        _inserters.Add(FloatInserter.Instance);
+        inserters.Add(FloatInserter.Instance);
         return this;
     }
     
     public RpcBody Write(int i)
     {
         Arguments.Add(i);
-        _inserters.Add(IntInserter.Instance);
+        inserters.Add(IntInserter.Instance);
         return this;
     }
     
     public RpcBody Write(sbyte sb)
     {
         Arguments.Add(sb);
-        _inserters.Add(SbyteInserter.Instance);
+        inserters.Add(SbyteInserter.Instance);
         return this;
     }
     
     public RpcBody Write(uint ui)
     {
         Arguments.Add(ui);
-        _inserters.Add(UintInserter.Instance);
+        inserters.Add(UintInserter.Instance);
         return this;
     }
 
     public RpcBody Write(ulong ul)
     {
         Arguments.Add(ul);
-        _inserters.Add(UlongInserter.Instance);
+        inserters.Add(UlongInserter.Instance);
         return this;
     }
     
     public RpcBody Write(ushort ush)
     {
         Arguments.Add(ush);
-        _inserters.Add(UshortInserter.Instance);
+        inserters.Add(UshortInserter.Instance);
         return this;
     }
 
     public RpcBody Write(InnerNetObject innerNetObject)
     {
         Arguments.Add(innerNetObject);
-        _inserters.Add(InnerNetObjectInserter.Instance);
+        inserters.Add(InnerNetObjectInserter.Instance);
         return this;
     }
 
     public RpcBody WriteCustom<T>(T obj, IRpcInserter customInserter)
     {
         Arguments.Add(obj!);
-        _inserters.Add(customInserter);
+        inserters.Add(customInserter);
         return this;
     }
 
@@ -124,14 +125,14 @@ public class RpcBody
     public RpcBody WritePacked(int i)
     {
         Arguments.Add(i);
-        _inserters.Add(IntPackedInserter.Instance);
+        inserters.Add(IntPackedInserter.Instance);
         return this;
     }
     
     public RpcBody WritePacked(uint i)
     {
         Arguments.Add(i);
-        _inserters.Add(UintPackedInserter.Instance);
+        inserters.Add(UintPackedInserter.Instance);
         return this;
     }
 
@@ -141,7 +142,7 @@ public class RpcBody
         Type objectType = obj.GetType();
         IRpcInserter inserter = GetInserter(objectType);
         Arguments.Add(obj);
-        _inserters.Add(inserter);
+        inserters.Add(inserter);
     }
     
     private void WriteInternalPacked(object? obj)
@@ -152,19 +153,19 @@ public class RpcBody
         if (inserter == null)
         {
             (Type key, inserter) = PackedInserters.FirstOrDefault(t => t.Key.IsAssignableFrom(objectType));
-            if (inserter != null) VentLogger.Warn($"Found inserter of inherited-type \"{key}\". Please consider registering \"{objectType.Name}\" with the same inserter.");
+            if (inserter != null) log.Warn($"Found inserter of inherited-type \"{key}\". Please consider registering \"{objectType.Name}\" with the same inserter.");
             else throw new VentLibException($"Cannot write object. {nameof(IPackedInserter)} does not exist for type {obj.GetType()}.");
         }
             
         Arguments.Add(obj);
-        _inserters.Add(inserter);
+        inserters.Add(inserter);
     }
 
     public void WriteAll(MessageWriter writer)
     {
         for (int index = 0; index < Arguments.Count; index++)
         {
-            IRpcInserter inserter = _inserters[index];
+            IRpcInserter inserter = inserters[index];
             if (inserter is IPackedInserter packedInserter) packedInserter.WritePacked(Arguments[index], writer);
             else inserter.Insert(Arguments[index], writer);
         }
@@ -203,7 +204,7 @@ public class RpcBody
         if (type.IsAssignableTo(typeof(IRpcWritable))) return Inserters[typeof(IRpcWritable)];
         
         (Type key, inserter) = Inserters.FirstOrDefault(t => t.Key.IsAssignableFrom(type));
-        if (inserter != null) VentLogger.Warn($"Found inserter of inherited-type \"{key}\". Please consider registering \"{type.Name}\" with the same inserter.");
+        if (inserter != null) log.Warn($"Found inserter of inherited-type \"{key}\". Please consider registering \"{type.Name}\" with the same inserter.");
         else throw new VentLibException($"Cannot write object. {nameof(IRpcInserter)} does not exist for type {type}.");
         return inserter;
     }
@@ -213,7 +214,7 @@ public class RpcBody
         return new RpcBody
         {
             Arguments = new List<object>(Arguments),
-            _inserters = new List<IRpcInserter>(_inserters)
+            inserters = new List<IRpcInserter>(inserters)
         };
     }
 

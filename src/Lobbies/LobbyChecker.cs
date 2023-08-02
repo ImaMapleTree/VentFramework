@@ -15,6 +15,7 @@ namespace VentLib.Lobbies;
 
 public class LobbyChecker
 {
+    private static StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(LobbyChecker));
     /*private static string LobbyEndpoint = "http://localhost:25565/lobbies";
     private static string LobbyUpdateEndpoint = "http://localhost:25565/update-lobby";*/
     private const string LobbyEndpoint = "http://18.219.112.36:8080/lobbies";
@@ -59,7 +60,7 @@ public class LobbyChecker
 
     private static void WaitForResponse(SyncTaskWaiter<HttpResponseMessage> response, int times)
     {
-        if (times > 20) VentLogger.Fatal("Failed to get modded lobbies");
+        if (times > 20) log.Fatal("Failed to get modded lobbies");
         else if (!response.Finished)
             Async.Schedule(() => WaitForResponse(response, times + 1), 1f);
         else HandleResponse(response.Response);
@@ -72,7 +73,7 @@ public class LobbyChecker
             StreamReader reader = new(response.Result.Content.ReadAsStream());
             string result = reader.ReadToEnd();
             reader.Close();
-            VentLogger.Log(LogLevel.Fatal, $"Response from lobby server: {result}", "ModdedLobbyCheck");
+            log.Log(LogLevel.Fatal, $"Response from lobby server: {result}", "ModdedLobbyCheck");
             _moddedLobbies = JsonSerializer.Deserialize<Dictionary<int, ModdedLobby>>(result)!;
         }
 

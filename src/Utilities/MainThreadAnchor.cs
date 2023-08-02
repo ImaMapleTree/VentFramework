@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
-using VentLib.Utilities.Attributes;
 
 namespace VentLib.Utilities;
 
-[LoadStatic]
-public class MainThreadAnchor
+public static class MainThreadAnchor
 {
     /// <summary>
     /// Gets/Sets the delay for checking the main thread action queue. Lower values will <b>significantly</b> impact performance
@@ -19,7 +17,7 @@ public class MainThreadAnchor
     static MainThreadAnchor()
     {
         _mainThreadId = Environment.CurrentManagedThreadId;
-        Async.Schedule(CheckActionQueue, 0.1f, true);
+        Async.Schedule(CheckActionQueue, QueueCheckDelay, true);
     }
 
     /// <summary>

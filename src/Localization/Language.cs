@@ -9,6 +9,7 @@ namespace VentLib.Localization;
 
 public class Language
 {
+    private static readonly StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(Language));
     public string Name { get; set; }= null!;
     public List<string> Authors { get; set; } = null!;
     internal QualifiedDictionary Translations { get; set; } = null!;
@@ -25,7 +26,7 @@ public class Language
     internal void Dump(ISerializer serializer)
     {
         if (File == null) return;
-        VentLogger.Trace($"Saving Translation File: {File.Name}");
+        log.Trace($"Saving Translation File: {File.Name}");
 
         FileStream stream = File.Open(FileMode.Create);
         string yamlString = serializer.Serialize(this);

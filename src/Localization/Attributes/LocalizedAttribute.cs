@@ -68,7 +68,9 @@ public class LocalizedAttribute : Attribute
         else qualifier = qualifier + "." + fieldAttribute.Qualifier;
         
         string? defaultValue = containingField.GetValue(null) as string;
+#pragma warning disable CS0618 // Type or member is obsolete
         string translation = localizer.Translate(qualifier, defaultValue ?? $"<{qualifier}>", false, fieldAttribute.ForceOverride ? TranslationCreationOption.ForceSave : TranslationCreationOption.CreateIfNull);
+#pragma warning restore CS0618 // Type or member is obsolete
         containingField.SetValue(null, translation);
     }
 }

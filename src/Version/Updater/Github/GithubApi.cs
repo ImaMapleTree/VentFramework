@@ -11,6 +11,7 @@ namespace VentLib.Version.Updater.Github;
 
 public class GithubApi
 {
+    private static StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(GithubApi));
     private const string LatestRepoURL = "https://api.github.com/repos/{0}/{1}/releases/latest";
     
     private HttpClient httpClient = new();
@@ -48,7 +49,7 @@ public class GithubApi
 
     public Progress<float> DownloadUpdate(string url, string filename, Action<FileInfo> callback)
     {
-        VentLogger.Trace($"Beginning Download of file: {url} to {filename}", "ModUpdater");
+        log.Trace($"Beginning Download of file: {url} to {filename}", "ModUpdater");
         Progress<float> progress = new();
         FileStream fileStream = File.Open(filename, FileMode.Create, FileAccess.Write);
         SyncTaskWaiter<bool> taskWaiter = new(downloadClient.DownloadAsync(url, fileStream, progress));

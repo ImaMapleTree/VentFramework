@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Reflection;
 using HarmonyLib;
@@ -13,6 +12,7 @@ namespace VentLib.Networking.RPC;
 
 public class ModRPC
 {
+    private static StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(ModRPC));
     public readonly uint CallId;
     public RpcActors Senders { get; }
     public RpcActors Receivers { get; }
@@ -58,7 +58,7 @@ public class ModRPC
 
     public void InvokeTrampoline(params object[] args)
     {
-        VentLogger.Log(LogLevel.All,$"Calling trampoline \"{trampoline.FullDescription()}\" with args: {args.StrJoin()}", "RPCTrampoline");
+        log.Log(LogLevel.All,$"Calling trampoline \"{trampoline.FullDescription()}\" with args: {args.StrJoin()}", "RPCTrampoline");
         trampoline.Invoke(instanceSupplier(), args);
     }
 }

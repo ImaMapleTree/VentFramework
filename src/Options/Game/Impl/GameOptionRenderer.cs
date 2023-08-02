@@ -8,6 +8,7 @@ namespace VentLib.Options.Game.Impl;
 
 public class GameOptionRenderer: IGameOptionRenderer
 {
+    private static readonly StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(GameOptionRenderer));
     private const float DefaultOffset = 2.75f;
     private static readonly Color[] Colors = { Color.green, Color.red, Color.blue };
     private float offset = DefaultOffset;
@@ -21,7 +22,7 @@ public class GameOptionRenderer: IGameOptionRenderer
             tab.GetPosition().Handle(position =>
             {
                 tab.SetPosition(new Vector2(0.8f * (i - 1) - tabs.Length / 2f, position.y));
-            }, () => VentLogger.Warn($"Could not render tab: {tab} ({i})"));
+            }, () => log.Warn($"Could not render tab: {tab} ({i})"));
         });
     }
 

@@ -16,6 +16,7 @@ namespace VentLib.Networking.RPC;
 
 public class RpcV3: MonoRpc, MassRpc, IChainRpc
 {
+    private static readonly StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(RpcV3));
     private uint netId;
     private byte callId;
     private SendOption sendOption;
@@ -237,7 +238,7 @@ public class RpcV3: MonoRpc, MassRpc, IChainRpc
             callId = callId,
             sendOption = sendOption,
             immediate = immediate,
-            rpcBody = rpcBody.Clone(),
+            rpcBody = rpcBody?.Clone(),
             isProtected = isProtected,
             isThreadSafe = isThreadSafe
         };
@@ -256,7 +257,7 @@ public class RpcV3: MonoRpc, MassRpc, IChainRpc
             }
             catch (Exception exception)
             {
-                VentLogger.Exception(exception, "Failed to send RPC.");
+                log.Exception("Failed to send RPC.", exception);
             }
         }
     }
@@ -272,7 +273,7 @@ public class RpcV3: MonoRpc, MassRpc, IChainRpc
             }
             catch (Exception exception)
             {
-                VentLogger.Exception(exception, "Failed to send RPC.");
+                log.Exception("Failed to send RPC.", exception);
             }
         }
     }
@@ -297,7 +298,7 @@ public class RpcV3: MonoRpc, MassRpc, IChainRpc
             ? AmongUsClient.Instance.StartRpc(netId, callId, sendOption)
             : AmongUsClient.Instance.StartRpcImmediately(netId, callId, sendOption, clientId);
         
-        rpcBody.WriteAll(writer);
+        rpcBody?.WriteAll(writer);
         
         lastMeta = GenerateMeta(clientId, writer.Length);
         lastMeta.Notify();
@@ -317,7 +318,7 @@ public class RpcV3: MonoRpc, MassRpc, IChainRpc
             NetId = netId,
             Recipient = clientId,
             RequiresHost = isProtected,
-            Arguments = rpcBody.Arguments,
+            Arguments = rpcBody!.Arguments,
             SendOption = sendOption,
             PacketSize = packetSize
         };

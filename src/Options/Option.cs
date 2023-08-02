@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using Hazel;
 using VentLib.Logging;
 using VentLib.Networking.Interfaces;
@@ -16,6 +15,7 @@ namespace VentLib.Options;
 
 public class Option: IRpcSendable<Option>
 {
+    private static StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(Option));
     // ReSharper disable once InconsistentNaming
     internal string name = null!;
     internal string? Key;
@@ -161,13 +161,13 @@ public class Option: IRpcSendable<Option>
 
     public Option Read(MessageReader reader)
     {
-        VentLogger.Warn("Message reading is currently a WIP");
+        log.Warn("Message reading is currently a WIP");
         return new Option();
     }
 
     public void Write(MessageWriter writer)
     {
-        VentLogger.Warn("Message writing is currently a WIP");
+        log.Warn("Message writing is currently a WIP");
     }
 
     internal bool HasParent() => Parent.Exists();

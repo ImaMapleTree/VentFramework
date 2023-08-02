@@ -10,6 +10,7 @@ namespace VentLib.Options.Game.Tabs;
 
 public abstract class VanillaTab : IGameOptionTab
 {
+    private static readonly StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(VanillaTab));
     protected UnityOptional<GameObject> TabButton = UnityOptional<GameObject>.Null();
     protected UnityOptional<GameObject> RelatedMenu = UnityOptional<GameObject>.Null();
 
@@ -18,14 +19,14 @@ public abstract class VanillaTab : IGameOptionTab
     
     public void Activate()
     {
-        VentLogger.Info($"Activated Vanilla Tab: \"{GetType().Name}\"", "TabSwitch");
+        log.Info($"Activated Vanilla Tab: \"{GetType().Name}\"", "TabSwitch");
         Highlight().IfPresent(highlight => highlight.enabled = true);
-        RelatedMenu.Handle(menu => menu.SetActive(true), () => VentLogger.Warn($"Error Activating Menu for {GetType().Name}"));
+        RelatedMenu.Handle(menu => menu.SetActive(true), () => log.Warn($"Error Activating Menu for {GetType().Name}"));
     }
 
     public void Deactivate()
     {
-        VentLogger.Debug($"Deactivated Vanilla Tab: \"{GetType().Name}\"", "TabSwitch");
+        log.Debug($"Deactivated Vanilla Tab: \"{GetType().Name}\"", "TabSwitch");
         Highlight().IfPresent(highlight => highlight.enabled = false);
         RelatedMenu.IfPresent(menu => menu.SetActive(false));
     }

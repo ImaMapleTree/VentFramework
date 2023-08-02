@@ -17,7 +17,7 @@ public class RpcMeta
     public bool Immediate { get; internal set; }
     public bool RequiresHost { get; internal set; }
     public int PacketSize { get; internal set; }
-    public List<object> Arguments { get; internal set; }
+    public List<object> Arguments { get; internal set; } = null!;
     public SendOption SendOption { get; internal set; }
 
     public void Notify()

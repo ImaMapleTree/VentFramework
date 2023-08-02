@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -9,6 +8,7 @@ using HarmonyLib;
 using VentLib.Commands;
 using VentLib.Localization;
 using VentLib.Logging;
+using VentLib.Logging.Default;
 using VentLib.Networking.Interfaces;
 using VentLib.Networking.RPC;
 using VentLib.Networking.RPC.Attributes;
@@ -40,12 +40,17 @@ public class Vents
     
     private static bool _initialized;
 
+    static Vents()
+    {
+        BepInExLogListener.BindToUnity();
+    }
+
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public static ModRPC? FindRPC(uint callId, MethodInfo? targetMethod = null)
     {
         if (!RpcBindings.TryGetValue(callId, out List<ModRPC>? RPCs))
         {
-            VentLogger.Warn($"Attempted to find unregistered RPC: {callId}", "VentLib");
+            NoDepLogger.Warn($"Attempted to find unregistered RPC: {callId}", "VentLib");
             return null;
         }
 
@@ -60,7 +65,7 @@ public class Vents
             throw new NullReferenceException($"No matching method with name {methodName} in class {declaringClass}");
         if (!RpcBindings.TryGetValue(callId, out List<ModRPC>? RPCs))
         {
-            VentLogger.Warn($"Attempted to find unregistered RPC: {callId}", "VentLib");
+            NoDepLogger.Warn($"Attempted to find unregistered RPC: {callId}", "VentLib");
             return null;
         }
 
@@ -71,7 +76,7 @@ public class Vents
 
     public static bool Register(Assembly assembly, bool localize = true)
     {
-        VentLogger.Info($"Registering {assembly.GetName().Name}");
+        NoDepLogger.Info($"Registering {assembly.GetName().Name}");
         if (RegisteredAssemblies.ContainsKey(assembly)) return false;
         RegisteredAssemblies.Add(assembly, VentControlFlag.AllowedReceiver | VentControlFlag.AllowedSender);
         AssemblyNames.TryAdd(assembly, assembly.GetName().Name!);
@@ -91,7 +96,7 @@ public class Vents
             .SelectMany(t => t.GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
             .Where(m => m.GetCustomAttribute<ModRPCAttribute>() != null).ToList();
 
-        VentLogger.Info($"Registering {methods.Count} methods from {assembly.GetName().Name}", "VentLib");
+        NoDepLogger.Info($"Registering {methods.Count} methods from {assembly.GetName().Name}", "VentLib");
         foreach (var method in methods)
         {
             ModRPCAttribute attribute = method.GetCustomAttribute<ModRPCAttribute>()!;
@@ -114,8 +119,9 @@ public class Vents
     public static void Initialize()
     {
         if (_initialized) return;
+        MainThreadAnchor.IsMainThread();
 
-        VentLogger.High($"Initializing VentFramework {Assembly.GetExecutingAssembly().GetName().Version!.ToString(4)} by Tealeaf");
+        NoDepLogger.High($"Initializing VentFramework {Assembly.GetExecutingAssembly().GetName().Version!.ToString(4)} by Tealeaf");
         
         var _ = Async.AUCWrapper;
         RootAssemby = Assembly.GetCallingAssembly();
