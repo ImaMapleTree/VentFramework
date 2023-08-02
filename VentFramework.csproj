@@ -21,11 +21,13 @@
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
 
+
         <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.671" PrivateAssets="all" />
 
         <PackageReference Include="JetBrains.Annotations" Version="2023.2.0-eap3">
             <Aliases>JetbrainsAnnotations</Aliases>
         </PackageReference>
+
 
         <PackageReference Include="Pastel" Version="4.1.0" />
         
